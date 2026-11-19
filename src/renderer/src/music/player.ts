@@ -246,9 +246,11 @@ export class SequencePlayer {
   }
 
   private note(t: TrackState, key: number, velocity: number, length: number) {
-    if (this.dry) { this.heard = true; return }
     const note = Math.max(0, Math.min(127, key + t.transpose))
     const r = this.region(t.program, note)
+    // While seeking, only a note that can be heard ends the silence: an instrument behind it, and some loudness left
+    // after the track's volume and expression.
+    if (this.dry) { if (r && velocity * t.volume * t.expression / (127 * 127 * 127) > .04) this.heard = true; return }
     if (!r) return
     const ctx = this.ctx, start = this.time, seconds = length * 60 / (this.tempo * 48)
     const attack = attackTime(t.attack !== 255 ? t.attack : r.attack), decay = fallTime(t.decay !== 255 ? t.decay : r.decay)
