@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { ArrowRight, Award, CircleDot, Flag, HeartCrack, Skull, TriangleAlert, Trophy } from 'lucide-react'
+import { ArrowRight, Award, CircleDot, Flag, HeartCrack, Skull, Swords, TriangleAlert, Trophy } from 'lucide-react'
 import type { GameNames } from '../../shared/api'
 import type { GameState, Run, RunEvent } from '../../shared/run'
 import { play as playSound } from './sfx'
-import { BOSSES, nextBoss, nextStep } from '../../shared/progression'
-import { TYPES, TYPE_COLORS } from './pokemonTypes'
+import { BOSSES, nextBoss, nextStep, trainersOf } from '../../shared/progression'
+import { TYPES, TYPE_COLORS, bestAttackers } from './pokemonTypes'
 import { MonIcon } from './MonIcon'
 import { BossFace, BossSheet, TypeLabel } from './BossSheet'
 
@@ -62,15 +62,23 @@ function WildRow({ run, names, species, size = 28, max = 6 }: { run: Run; names:
 }
 
 /**
- * The run in the cockpit, beside your screens. Left: where you are, with what can be caught there (greyed when the
- * dupes clause rules it out) or what you caught there; then the team as it stands, with each member's health and
- * level. Right: the main task, which is catching your encounter here while the area is open, else the next place on
- * the story route with what lives there, else the boss; it unfolds into the goal and folds back into this card.
+ * The run in the cockpit, beside your screens. Left: where you are, with your catch there; next up, a list fading out
+ * step by step: catching your encounter here while the area is open (what lives there, greyed when the dupes clause
+ * rules it out), the places still ahead on the story route with what lives in each, then the boss; then the team as it
+ * stands. Right: the guide, the next boss with its type, the cap and the types that hit its team hardest, which
+ * unfolds into its team and each Pokémon's profile and folds back into this card.
  */
 export function RunScene({ run, game, names, front, partner = null }: { run: Run; game: GameState | null; names: GameNames | null; front: DOMRect; partner?: DOMRect | null }) {
-  // In Soul Link the partner's screens stand to the right: the task moves into the left column rather than cover them.
-  const stack = !!partner && partner.left < front.right + 300 && partner.bottom > front.top && partner.top < front.top + 120
+  // Placement. Solo: the column on the left of your screens, the task on the right. Soul Link: the task sits under the
+  // partner's screens; the column stays left of yours when there is room, otherwise it goes under the task.
+  const room = front.left - 30, columnWidth = Math.min(190, Math.max(150, room))
+  const columnFits = room >= 150
+  const cardAt: CSSProperties = partner ? { left: partner.left, top: partner.bottom + 12, width: Math.max(250, partner.width) } : { left: front.right + 18, top: front.top + 8 }
+  const sheetTop = partner ? Math.max(56, Math.min(partner.top, innerHeight - 560)) : front.top + 8
+  const sheetAt: CSSProperties = partner ? { left: Math.min(partner.left, innerWidth - 440), top: sheetTop, maxHeight: innerHeight - sheetTop - 20 } : { left: front.right + 18, top: sheetTop, maxHeight: innerHeight - sheetTop - 20 }
+  const columnAt: CSSProperties = columnFits || !partner ? { left: Math.max(12, front.left - 18 - columnWidth), width: columnWidth, top: front.top + 8 } : { left: partner.left, width: Math.max(250, partner.width), top: partner.bottom + 100 }
   const party = (game?.party ?? []).filter(p => !p.egg)
+  const fallen = Object.values(run.pokemon).filter(p => p.status === 'dead')
   const boss = nextBoss(run.badges)
   const [open, setOpen] = useState(false)
   const here = game?.where?.place ?? 0, area = here ? run.areas[String(here)] : undefined
@@ -85,41 +93,55 @@ export function RunScene({ run, game, names, front, partner = null }: { run: Run
     return { name, done: k < step.done, next: k === step.done, here: index === here, caught: caught?.species, wild: index > 0 ? wildAt(names, index) : [] }
   })
   const tint = (species: number) => TYPE_COLORS[names?.types?.[species]?.[0] ?? 0]
-  const card = <button className="run-objective" data-kind={kind} data-open={open} onClick={() => setOpen(true)} aria-label={kind === 'boss' ? boss.name : kind === 'go' ? step.place! : placeName(names, here)}
-    style={{ ...(stack ? {} : { left: front.right + 18, top: front.top + 8 }), '--type': boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b' } as CSSProperties}>
+  const scouting = run.rules.scouting !== false
+  const bring = scouting ? bestAttackers(trainersOf(boss).flatMap(name => names?.teams?.[name] ?? []).map(m => [...new Set(names?.types?.[m.species] ?? [])]), 3) : []
+  const card = <button className="run-objective run-guide" data-open={open} onClick={() => setOpen(true)} aria-label={boss.name}
+    style={{ ...cardAt, '--type': boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b' } as CSSProperties}>
     <BossFace names={names} boss={boss} size={68}/>
     <span>
-      <b>{kind === 'catch' ? <><CircleDot size={15}/>{placeName(names, here)}</> : kind === 'go' ? <><ArrowRight size={15}/>{step.place}</> : boss.name}</b>
-      <WildRow run={run} names={names} species={taskSpecies}/>
-      {boss.path.length > 0 && <i className="run-steps" aria-hidden>{stops.map((stop, k) => <u key={k} data-on={stop.done} data-next={stop.next}/>)}</i>}
+      <b>{boss.name}{boss.type !== null && <TypeLabel names={names} type={boss.type}/>}</b>
+      {bring.length > 0 && <i className="run-bring" title="Strong against this team"><Swords size={13}/>{bring.map(a => <TypeLabel key={a.type} names={names} type={a.type}/>)}</i>}
     </span>
-    {kind === 'boss' && boss.type !== null && <TypeLabel names={names} type={boss.type}/>}
     {run.rules.levelCaps && boss.cap !== null && <strong title="Level cap">{boss.cap}</strong>}
   </button>
+  // Next up: the catch here while the area is open, then the places still ahead on the story route with what lives in
+  // each, then the boss; each step fainter than the one before.
+  const upcoming: { key: string; kind: 'catch' | 'go' | 'boss'; name?: string; species: number[] }[] = []
+  if (kind === 'catch') upcoming.push({ key: 'catch', kind: 'catch', species: hereWild })
+  stops.slice(0, -1).forEach((stop, k) => { if (!stop.done && !stop.here && k >= step.done) upcoming.push({ key: stop.name, kind: 'go', name: stop.name, species: stop.wild }) })
+  upcoming.push({ key: 'boss', kind: 'boss', name: boss.place, species: [] })
   const sheet = open && <BossSheet names={names} badges={run.badges} caps={!!run.rules.levelCaps} scouting={run.rules.scouting !== false} stops={stops} ruledOut={sp => ruledOut(run, names, sp)}
-    style={stack ? { right: `calc(100% - ${front.left - 18}px)`, top: front.top + 8 } : { left: front.right + 18, top: front.top + 8 }} side={stack ? 'left' : 'right'} onClose={() => setOpen(false)}/>
+    style={sheetAt} side="right" onClose={() => setOpen(false)}/>
   return <>
-    <div className="run-left" data-stack={stack} style={{ right: `calc(100% - ${front.left - 18}px)`, top: front.top + 8 }}>
+    <div className="run-left" data-under={!columnFits && !!partner} style={columnAt}>
     {here > 0 && <div className="run-place" key={here} role="status" data-caught={!!area}>
       <b>{placeName(names, here)}</b>
-      {area?.species !== undefined
-        ? <span className="run-place-catch" title={speciesName(names, area.species)}><MonIcon names={names} species={area.species} size={36} fainted={area.pid !== undefined && run.pokemon[String(area.pid)]?.status === 'dead'}/></span>
-        : <WildRow run={run} names={names} species={hereWild} size={32} max={8}/>}
+      {area?.species !== undefined && <span className="run-place-catch" title={speciesName(names, area.species)}><MonIcon names={names} species={area.species} size={36} fainted={area.pid !== undefined && run.pokemon[String(area.pid)]?.status === 'dead'}/></span>}
     </div>}
-    {stack && card}
+    <ol className="run-next" aria-label="Next up">
+      {upcoming.slice(0, 4).map((up, k) => <li key={up.key} data-kind={up.kind} style={{ '--depth': k } as CSSProperties}>
+        {up.kind === 'catch' ? <CircleDot size={15}/> : up.kind === 'go' ? <ArrowRight size={15}/> : <BossFace names={names} boss={boss} size={26}/>}
+        {up.name && <b>{up.kind === 'boss' ? boss.name : up.name}</b>}
+        {up.species.length > 0 && <WildRow run={run} names={names} species={up.species} size={up.kind === 'catch' ? 32 : 26} max={up.kind === 'catch' ? 8 : 4}/>}
+      </li>)}
+    </ol>
     <ol className="run-team" aria-label="Team">
       {party.map(p => {
         const dead = run.pokemon[String(p.pid)]?.status === 'dead' || p.hp === 0
         const share = p.hp !== null && p.maxHp ? p.hp / p.maxHp : 1
-        return <li key={p.pid} data-dead={dead} data-icon={!!names?.icons?.[p.species]} style={{ '--type': tint(p.species), '--hp': share } as CSSProperties}>
+        const over = !!run.rules.levelCaps && boss.cap !== null && p.level !== null && p.level > boss.cap
+        return <li key={p.pid} data-dead={dead} data-over={over} data-icon={!!names?.icons?.[p.species]} style={{ '--type': tint(p.species), '--hp': share } as CSSProperties}>
           <MonIcon names={names} species={p.species} size={40} hp={share} fainted={dead}/>
-          <b>{called(names, p)}</b>{p.level !== null && <span>{p.level}</span>}
+          <b>{called(names, p)}<em>{placeName(names, p.metLocation)}</em></b>{p.level !== null && <span title={over ? `Over the cap of ${boss.cap}` : undefined}>{p.level}</span>}
           {dead ? <Skull size={13}/> : <i data-low={share < .25} data-mid={share < .5}/>}
         </li>
       })}
     </ol>
+    {fallen.length > 0 && <ol className="run-fallen" aria-label="Fallen">
+      {fallen.map(p => <li key={p.pid} title={`${called(names, p)} · ${placeName(names, p.metLocation)}`}><MonIcon names={names} species={p.species} size={30} fainted/></li>)}
+    </ol>}
     </div>
-    {!stack && card}
+    {card}
     {sheet}
   </>
 }

@@ -97,16 +97,6 @@ export function BossSheet({ names, badges, caps, scouting, stops, ruledOut, styl
       </span>
       {caps && boss.cap !== null && <strong title="Level cap">{boss.cap}</strong>}
     </header>
-    {stops.length > 1 && <ol className="boss-route" aria-label="Route">
-      {stops.map((stop, k) => <li key={k} data-done={stop.done} data-next={stop.next} data-here={stop.here} data-goal={k === stops.length - 1}>
-        <i className="boss-route-node" aria-hidden/>
-        <b>{stop.name}</b>
-        <span className="boss-route-mons">
-          {stop.caught !== undefined ? <span data-caught title={names?.species[stop.caught]}><MonIcon names={names} species={stop.caught} size={28}/></span>
-            : stop.wild.slice(0, 4).map(sp => <span key={sp} data-out={ruledOut(sp)} title={names?.species[sp]}><MonIcon names={names} species={sp} size={28}/></span>)}
-        </span>
-      </li>)}
-    </ol>}
     {scouting && <>
       {!boss.members && best.length > 0 && <div className="boss-bring" key={`bring-${boss.name}`}>
         <Swords size={15} aria-label="Strong against this team"/>

@@ -144,7 +144,7 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
     {ready && emulator && layout.stations && !pad && <div className="key-strip-anchor" data-hidden={focus !== 'local'} style={{ left: layout.stations.local.x + layout.stations.local.width / 2, top: layout.stations.local.bottom }}><KeyGuide/></div>}
     {error && <p className="play-error" role="alert">{error}</p>}
     {(run ?? loose) && <RunMoments events={(run ?? loose)!.events} names={names ?? null}/>}
-    {(run ?? loose) && ready && game?.trainer?.name && layout.front && focus === 'local' && <RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={layout.front} partner={layout.partner}/>}
+    {(run ?? loose) && ready && game?.trainer?.name && layout.front && <div className="run-scene" data-dim={focus !== 'local'}><RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={layout.stations?.local ?? layout.front} partner={layout.stations?.partner ?? null}/></div>}
     {settingsOpen && <div className="cockpit-settings" role="dialog" aria-label="Settings">
       <button className="hud-button cockpit-settings-close" onClick={() => setSettingsOpen(false)} aria-label="Close"><X size={16}/></button>
       <QuickSettings/>

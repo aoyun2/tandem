@@ -1403,3 +1403,43 @@ main.page-settings{padding-top:44px;place-items:initial}
 .now-playing[data-strip=true]{grid-template-columns:auto auto auto auto;grid-template-areas:"p t q n";isolation:isolate;overflow:hidden}
 .now-playing[data-strip=true] .mini-spectrum{position:absolute;inset:0;z-index:-1;width:100%;height:100%;margin:0;opacity:.45}
 .now-playing[data-strip=true] .mini-spectrum{opacity:.8}
+.now-playing[data-strip=true] .mini-spectrum{opacity:1}
+
+/* Placement is computed per layout; the column under the task in Soul Link stands flat. */
+.run-left{right:auto}
+.run-left[data-under=true]{transform:none;align-items:stretch}
+.run-left[data-under=true] .run-place{align-items:flex-start}
+
+/* Next up: the steps ahead, each fainter than the one before. */
+.run-next{display:flex;flex-direction:column;align-items:flex-end;gap:4px;width:100%;margin:0;padding:0;list-style:none}
+.run-next li{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:4px 8px;max-width:100%;padding:6px 12px;border-radius:12px;background:linear-gradient(90deg,transparent,#0e0f11cc 40%);color:#f4efe6;font-size:13px;opacity:calc(1 - var(--depth) * .24);animation:run-place .45s calc(var(--depth) * 70ms) cubic-bezier(.2,.9,.2,1) both}
+.run-next li:first-child{font-size:14.5px;font-weight:700;box-shadow:inset 0 0 0 1px #ffffff14}
+.run-next li svg{flex:none;color:var(--prism-mint)}
+.run-next li[data-kind=go] svg{color:#cfc9be}
+.run-next li .boss-face{border-radius:4px}
+.run-next li b{white-space:nowrap}
+.run-next .run-wild{margin:-5px 0 -7px}
+.run-left[data-under=true] .run-next,.run-left[data-under=true] .run-next li{align-items:flex-start;justify-content:flex-start}
+/* The guide card: the boss, its type, the types to bring and the cap. */
+.run-guide>span{gap:6px}
+.run-guide b .type-label{margin-left:8px}
+.run-bring{display:flex;align-items:center;gap:4px;font-style:normal;color:var(--dim)}
+.run-bring svg{color:var(--dim)!important}
+.mon-moves li{grid-template-columns:32px 32px minmax(0,150px) 34px 34px;justify-content:start}
+
+/* The ambient light behind the console: small, scaled up and blurred, screened over the scene. */
+.music-ambient{width:calc((var(--ds-right,0px) - var(--ds-left,0px)) * 2.1)!important;filter:blur(38px) saturate(1.2);mix-blend-mode:screen;image-rendering:auto}
+.music-ring.music-ambient[data-shown=true]{opacity:.85}
+
+/* Team details: where each was caught; a level over the cap in red; the fallen as a greyed row. */
+.run-team b{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.run-team b em{font-style:normal;font-size:11px;font-weight:500;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.run-team li[data-over=true] span{color:#ff8a7a}
+.run-team li[data-over=true]{box-shadow:inset 0 0 0 1px #ff8a7a88,0 10px 24px -12px #000c}
+.run-fallen{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0;width:100%;margin:0;padding:0;list-style:none;opacity:.7}
+.run-left[data-under=true] .run-fallen{justify-content:flex-start}
+
+/* While you spectate your partner, your run stays with your screens, dimmed. */
+.run-scene{display:contents}
+.run-scene>*{transition:opacity .5s ease,filter .5s ease}
+.run-scene[data-dim=true]>*{opacity:.35;filter:saturate(.6)}

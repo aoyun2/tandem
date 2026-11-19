@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { musicAnalyser } from './NowPlaying'
 
 const PRISM = ['#ff8a7a', '#ffe29a', '#9ff0c8', '#9db4ff']
-const POINTS = 144
 
 /**
  * Follows the music's spectrum: `count` bands from low to high, rising fast and settling slowly, then smoothed across
@@ -54,70 +53,52 @@ const prismConic = (c: CanvasRenderingContext2D, turn: number, x: number, y: num
   return g
 }
 
-/** Each layer of the ring, back to front: its colour, how many frames behind the live spectrum it is, its reach, and
- * how far round it is turned (radians) so the outlines separate. */
-const LAYERS = [
-  { colour: PRISM[3], delay: 18, reach: 1.55, turn: -.09 },
-  { colour: PRISM[2], delay: 12, reach: 1.36, turn: .06 },
-  { colour: PRISM[1], delay: 6, reach: 1.17, turn: -.03 },
-  { colour: PRISM[0], delay: 0, reach: 1, turn: 0 }
+/** The four glows: their colour, the part of the spectrum (of 8 bands) that drives each, and where each drifts. */
+const GLOWS = [
+  { colour: PRISM[0], bands: [0, 1], orbit: .0, speed: .00011 },
+  { colour: PRISM[1], bands: [2, 3], orbit: 1.6, speed: -.00008 },
+  { colour: PRISM[2], bands: [4, 5], orbit: 3.1, speed: .00009 },
+  { colour: PRISM[3], bands: [6, 7], orbit: 4.7, speed: -.00012 }
 ]
-const HISTORY = 20
+const AMBIENT = 160
 
 /**
- * The music as stacked spectrum contours behind the console. Each angle is a frequency band, mirrored left and right
- * so the lows sit at the top and bottom. Four smooth outlines in the prism's colours are layered back to front, each
- * a few frames behind the one in front and reaching a little further, so the shape has depth and its motion trails;
- * each is a soft filled band with a bright edge. The console's circle sits inside, and the whole ring breathes a
- * little with the bass. At rest only the circle shows.
+ * The music as ambient light behind the console: four soft glows in the prism's colours drifting slowly round it. The
+ * bass swells the coral glow, the low middle the gold, the middle the mint and the highs the blue; the whole light
+ * brightens with the overall loudness and pulses with the bass. It is drawn small and scaled up blurred, so it reads as
+ * light rather than shape. At rest a faint warm glow remains.
  */
 export function MusicRing({ shown }: { shown: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
-    const el = canvas.current!, c = el.getContext('2d')!, read = spectrum(POINTS, true, 1)
-    const history = Array.from({ length: HISTORY }, () => new Float32Array(POINTS))
-    let frame = 0, head = 0
-    const draw = () => {
+    const el = canvas.current!, c = el.getContext('2d')!, read = spectrum(8, false)
+    el.width = el.height = AMBIENT
+    const held = new Float32Array(GLOWS.length)
+    let frame = 0
+    const draw = (now: number) => {
+      if (!shown) { c.clearRect(0, 0, AMBIENT, AMBIENT); return }
       frame = requestAnimationFrame(draw)
-      const size = Math.round(el.clientWidth * devicePixelRatio)
-      if (!size) return
-      if (el.width !== size) { el.width = el.height = size }
-      const { level, bass, energy } = read(shown)
-      head = (head + 1) % HISTORY; history[head].set(level)
-      const r = size / 2, k = devicePixelRatio, inner = r * .66 * (1 + bass * .03), reach = r * .17
-      const contour = (values: Float32Array, scale: number, turn = 0) => {
-        const point = (i: number) => { const t = i / POINTS * Math.PI * 2 - Math.PI / 2 + turn, rr = inner + reach * scale * values[(i + POINTS) % POINTS]; return [r + Math.cos(t) * rr, r + Math.sin(t) * rr] }
-        let [px, py] = point(0), [qx, qy] = point(1)
-        c.moveTo((px + qx) / 2, (py + qy) / 2)
-        for (let i = 1; i <= POINTS; i++) { [px, py] = point(i); [qx, qy] = point(i + 1); c.quadraticCurveTo(px, py, (px + qx) / 2, (py + qy) / 2) }
-        c.closePath()
-      }
-      c.clearRect(0, 0, size, size)
-      const lit = Math.min(1, energy * 3)
-      c.save()
-      for (const layer of LAYERS) {
-        const values = history[(head - layer.delay + HISTORY * 2) % HISTORY]
-        // A soft filled band from the circle out to this layer's outline.
-        c.globalCompositeOperation = 'source-over'
-        c.beginPath(); contour(values, layer.reach, layer.turn); c.moveTo(r + inner, r); c.arc(r, r, inner, 0, Math.PI * 2, true)
-        c.fillStyle = layer.colour; c.globalAlpha = .1 + .18 * lit; c.fill('evenodd')
-        // Its edge, bright, with a little glow.
-        c.globalCompositeOperation = 'lighter'
-        c.beginPath(); contour(values, layer.reach, layer.turn)
-        c.strokeStyle = layer.colour; c.lineWidth = k * (layer.delay ? 1.4 : 2); c.globalAlpha = (layer.delay ? .45 : .8) * (.35 + .65 * lit)
-        c.shadowColor = layer.colour; c.shadowBlur = k * 8; c.stroke(); c.shadowBlur = 0
-      }
-      // The console's circle: a dark disc so the layers read as rising from it, and a hairline edge.
-      c.globalCompositeOperation = 'destination-out'; c.globalAlpha = 1
-      c.beginPath(); c.arc(r, r, inner - k, 0, Math.PI * 2); c.fill()
-      c.globalCompositeOperation = 'source-over'; c.globalAlpha = .22; c.strokeStyle = '#f4efe6'; c.lineWidth = k
-      c.beginPath(); c.arc(r, r, inner, 0, Math.PI * 2); c.stroke()
-      c.restore()
+      const { level, bass, energy } = read(true)
+      const r = AMBIENT / 2
+      c.clearRect(0, 0, AMBIENT, AMBIENT)
+      c.globalCompositeOperation = 'lighter'
+      GLOWS.forEach((g, n) => {
+        const drive = g.bands.reduce((sum, b) => sum + level[b], 0) / g.bands.length
+        held[n] += (drive - held[n]) * (drive > held[n] ? .25 : .04)
+        const angle = g.orbit + now * g.speed, spread = r * (.22 + .12 * held[n])
+        const x = r + Math.cos(angle) * spread, y = r + Math.sin(angle) * spread * .8
+        const radius = r * (.42 + .38 * held[n] + .1 * bass)
+        const glow = c.createRadialGradient(x, y, 0, x, y, radius)
+        glow.addColorStop(0, g.colour); glow.addColorStop(1, 'rgba(0,0,0,0)')
+        c.globalAlpha = Math.min(1, .1 + .75 * held[n] + .25 * energy)
+        c.fillStyle = glow; c.beginPath(); c.arc(x, y, radius, 0, Math.PI * 2); c.fill()
+      })
+      c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
   }, [shown])
-  return <canvas ref={canvas} className="music-ring" data-shown={shown} aria-hidden="true"/>
+  return <canvas ref={canvas} className="music-ring music-ambient" data-shown={shown} aria-hidden="true"/>
 }
 
 /** The same spectrum in miniature, filling the now-playing strip behind it: a smooth prism ridge, lows on the left, highs on the right. */
@@ -127,6 +108,7 @@ export function MiniSpectrum({ live }: { live: boolean }) {
     const el = canvas.current!, c = el.getContext('2d')!, read = spectrum(40, false)
     let frame = 0
     const draw = (now: number) => {
+      if (!live) { c.clearRect(0, 0, el.width, el.height); return }
       frame = requestAnimationFrame(draw)
       const w = Math.round(el.clientWidth * devicePixelRatio), h = Math.round(el.clientHeight * devicePixelRatio)
       if (!w || !h) return
@@ -144,8 +126,8 @@ export function MiniSpectrum({ live }: { live: boolean }) {
         c.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2)
       }
       c.lineTo(w, h); c.closePath()
-      c.globalAlpha = .25 + .45 * Math.min(1, energy * 3); c.fillStyle = g; c.fill()
-      c.globalAlpha = .9; c.strokeStyle = g; c.lineWidth = 1.4 * k; c.stroke()
+      c.globalAlpha = .3 + .35 * Math.min(1, energy * 3); c.fillStyle = g; c.fill()
+      c.globalAlpha = 1; c.strokeStyle = g; c.lineWidth = 2 * k; c.stroke()
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
