@@ -73,9 +73,11 @@ export function RunScene({ run, game, names, front, partner = null }: { run: Run
   // partner's screens and unfolds sideways there into a wide two-column panel.
   const room = front.left - 30, columnWidth = Math.min(190, Math.max(150, room))
   const columnFits = room >= 150
-  const cardAt: CSSProperties = partner ? { left: partner.left, top: partner.bottom + 18, width: partner.width } : { left: front.right + 18, top: front.top + 8 }
-  const wideLeft = Math.max(front.right + 18, innerWidth - 800), wideTop = partner ? Math.max(60, Math.min(partner.bottom + 18, innerHeight - 470)) : 0
-  const sheetAt: CSSProperties = partner ? { left: wideLeft, top: wideTop, width: Math.min(760, innerWidth - wideLeft - 24), maxHeight: innerHeight - wideTop - 20 } : { left: front.right + 18, top: front.top + 8, maxHeight: innerHeight - front.top - 28 }
+  const WIDE = .84, wideWidth = Math.min(600, (innerWidth - 40) / WIDE)
+  const wideLeft = partner ? Math.min(front.right + 44, innerWidth - 20 - wideWidth * WIDE) : 0, wideTop = partner ? Math.max(60, Math.min(partner.bottom + 34, innerHeight - 130)) : 0
+  const cardAt: CSSProperties = partner ? { left: wideLeft, top: wideTop, width: partner.width } : { left: front.right + 18, top: front.top + 8 }
+  const floor = (document.querySelector('.key-strip-anchor > *')?.getBoundingClientRect().bottom || innerHeight - 20)
+  const sheetAt: CSSProperties = partner ? { left: wideLeft, top: wideTop, width: wideWidth, maxHeight: Math.max(200, floor - wideTop) / WIDE } : { left: front.right + 18, top: front.top + 8, maxHeight: innerHeight - front.top - 28 }
   const columnAt: CSSProperties = { left: Math.max(12, front.left - 18 - columnWidth), width: columnWidth, top: front.top + 8 }
   const party = (game?.party ?? []).filter(p => !p.egg)
   const fallen = Object.values(run.pokemon).filter(p => p.status === 'dead')
@@ -98,11 +100,12 @@ export function RunScene({ run, game, names, front, partner = null }: { run: Run
   const card = <button className="run-objective run-guide" data-under={!!partner} data-open={open} onClick={() => setOpen(true)} aria-label={boss.name}
     style={{ ...cardAt, '--type': boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b' } as CSSProperties}>
     <BossFace names={names} boss={boss} size={68}/>
+    <svg className="run-next-mark" viewBox="0 9 180 63" preserveAspectRatio="xMaxYMid meet" aria-hidden><text x="0" y="72" textLength="180" lengthAdjust="spacingAndGlyphs">NEXT</text></svg>
     <span>
-      <b>{boss.name}{boss.type !== null && <TypeLabel names={names} type={boss.type}/>}</b>
-      {bring.length > 0 && <i className="run-bring" title="Strong against this team"><Swords size={13}/>{bring.map(a => <TypeLabel key={a.type} names={names} type={a.type}/>)}</i>}
+      <b>{boss.name}</b>
+      <i className="run-types">{boss.type !== null && <TypeLabel names={names} type={boss.type}/>}</i>
     </span>
-    {run.rules.levelCaps && boss.cap !== null && <strong title="Level cap">{boss.cap}</strong>}
+    {boss.cap !== null && <strong className="run-cap" title="Level cap"><small>Lv.</small>{boss.cap}</strong>}
   </button>
   // Next up: the catch here while the area is open, then the places still ahead on the story route with what lives in
   // each, then the boss; each step fainter than the one before.

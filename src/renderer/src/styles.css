@@ -1489,3 +1489,50 @@ button.run-objective[data-under=true] strong{position:static;margin-left:auto}
 .run-scene{display:block;position:absolute;inset:0;pointer-events:none;transform-origin:0 0;transition:opacity .5s ease,filter .5s ease}
 .run-scene[data-dim=true]{z-index:-1;opacity:.4;filter:saturate(.6)}
 .run-scene[data-dim=true]>*{z-index:auto!important;opacity:1;filter:none}
+button.run-objective.run-guide{position:relative;padding-top:24px}
+.run-next-mark{position:absolute;top:0;left:0;right:0;height:24px;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:color-mix(in srgb,var(--type) 45%,#f4efe6);background:linear-gradient(90deg,color-mix(in srgb,var(--type) 18%,transparent),transparent 85%);pointer-events:none}
+.run-next-mark::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--type) 70%,transparent),transparent)}
+.boss-sheet[data-wide=true]{transform:perspective(1600px) rotateY(-5deg) scale(.84);transform-origin:0 0;padding:10px;gap:8px;column-gap:12px}
+button.run-objective.run-guide{transform-style:preserve-3d}
+button.run-objective.run-guide>span{position:relative;z-index:1;margin-left:-30px;transform-style:preserve-3d}
+button.run-objective.run-guide b{transform:translateZ(26px);text-shadow:1px 1px 0 color-mix(in srgb,var(--type) 55%,#0e0f11),2px 2px 0 color-mix(in srgb,var(--type) 35%,#0e0f11),3px 3px 0 #0e0f11cc,0 8px 18px #000c}
+button.run-objective.run-guide .run-bring{transform:translateZ(12px)}
+button.run-objective[data-under=true],.boss-sheet[data-wide=true]{transform-origin:0 0}
+button.run-objective[data-under=true]{transform:perspective(1400px) rotateY(-5deg)}
+button.run-objective.run-guide{padding-top:26px;align-items:flex-end}
+.run-next-mark{justify-content:flex-start;text-align:left;height:26px;padding:0 12px;font-size:9.5px}
+.run-next-mark::after{background:linear-gradient(90deg,color-mix(in srgb,var(--type) 80%,#fff3),transparent 70%)}
+button.run-objective.run-guide .boss-face{position:relative;z-index:0}
+button.run-objective.run-guide>span{margin-left:-36px;padding:4px 0 12px;gap:8px}
+button.run-objective.run-guide b{font-size:26px;font-weight:800;line-height:1;letter-spacing:-.01em;color:#fff;transform:none;text-shadow:1px 1px 0 color-mix(in srgb,var(--type) 75%,#000),2px 2px 0 color-mix(in srgb,var(--type) 65%,#000),3px 3px 0 color-mix(in srgb,var(--type) 50%,#000),4px 4px 0 color-mix(in srgb,var(--type) 35%,#000),5px 6px 14px #000d}
+button.run-objective.run-guide b .type-label{text-shadow:none;font-size:11px}
+button.run-objective.run-guide strong{align-self:center}
+button.run-objective.run-guide{padding-top:0;align-items:center}
+.run-next-mark{inset:0;height:auto;display:flex;align-items:center;justify-content:flex-end;padding:0 12px 0 0;background:none;font-size:58px;font-weight:900;line-height:1;letter-spacing:-.03em;color:color-mix(in srgb,var(--type) 26%,transparent);text-shadow:1px 1px 0 color-mix(in srgb,var(--type) 18%,transparent),2px 2px 0 color-mix(in srgb,var(--type) 14%,transparent),3px 3px 0 color-mix(in srgb,var(--type) 10%,transparent),4px 4px 0 color-mix(in srgb,var(--type) 7%,transparent);z-index:0}
+.run-next-mark::after{content:none}
+button.run-objective.run-guide>span,button.run-objective.run-guide strong{position:relative;z-index:1}
+button.run-objective.run-guide>span{padding:12px 0}
+.run-next-mark{padding:0;justify-content:flex-end;font-size:88px;line-height:.74;letter-spacing:-.04em;margin-right:-6px;align-items:center}
+button.run-objective[data-under=true]{transform:none}
+.run-next-mark{left:auto;right:0;padding:0;margin:0;letter-spacing:-.02em;color:color-mix(in srgb,var(--type) 30%,#141518);text-shadow:2px 2px 0 color-mix(in srgb,var(--type) 12%,#0e0f11);-webkit-font-smoothing:antialiased;transform:translateX(.04em)}
+button.run-objective[data-under=true]{transform:perspective(1400px) rotateY(-5deg);transform-origin:0 0}
+svg.run-next-mark{position:absolute;top:0;bottom:0;right:0;left:auto;height:100%;width:auto;padding:0;margin:0;transform:none;text-shadow:none;z-index:0;overflow:visible}
+svg.run-next-mark text{font-size:100px;font-weight:900;font-family:inherit;fill:color-mix(in srgb,var(--type) 30%,#141518)}
+svg.run-next-mark text.shade{fill:color-mix(in srgb,var(--type) 12%,#0e0f11)}
+.run-types{display:flex;align-items:center;gap:10px;font-style:normal}
+.run-types .run-bring{display:flex;align-items:center;gap:4px;margin:0}
+button.run-objective.run-guide strong.run-cap{position:relative;z-index:1;display:flex;align-items:baseline;gap:2px;margin-left:auto;padding-left:12px;font-size:30px;font-weight:800;line-height:1;color:#fff;text-shadow:2px 2px 0 color-mix(in srgb,var(--type) 45%,#000),0 6px 14px #000c}
+button.run-objective.run-guide strong.run-cap small{font-size:12px;font-weight:700;opacity:.7}
+svg.run-next-mark{overflow:hidden}
+svg.run-next-mark text{fill:color-mix(in srgb,var(--type) 16%,#1b1c1f)}
+button.run-objective.run-guide .boss-face{width:80px!important}
+button.run-objective.run-guide>span{margin-left:-20px}
+button.run-objective.run-guide strong.run-cap{background:none;box-shadow:none;border:0;padding-right:0}
+button.run-objective.run-guide{--edge:color-mix(in srgb,var(--type) 26%,#46474b)}
+button.run-objective.run-guide::after{content:'';position:absolute;inset:0;z-index:2;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--edge);pointer-events:none}
+svg.run-next-mark text{fill:var(--edge,color-mix(in srgb,var(--type) 26%,#46474b));opacity:.42}
+.boss-sheet[data-wide=true]{grid-template-columns:200px minmax(0,1fr)}
+.boss-sheet[data-wide=true]>.boss-head{overflow:hidden;border-radius:18px 0 0 0}
+.boss-sheet[data-wide=true]>.boss-head>*:not(svg){position:relative;z-index:1}
+svg.run-next-mark{z-index:0}
+button.run-objective.run-guide .boss-face,.boss-sheet[data-wide=true]>.boss-head .boss-face{position:relative;z-index:1}

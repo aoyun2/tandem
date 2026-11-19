@@ -64,6 +64,7 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
   useEffect(() => {
     const host = stage.current!, root = view.current!
     let deck: Cockpit, latest: { width: number; height: number; pixels: Uint8Array } | null = null
+    let stopReel = () => {}
     const layoutChanged = (next: CockpitLayout) => {
       const key = JSON.stringify([next.partner && [next.partner.x, next.partner.y, next.partner.width].map(Math.round), next.localBottom && [next.localBottom.x, next.localBottom.y].map(Math.round), next.front && [next.front.right, next.front.bottom].map(Math.round), next.stations && [next.stations.local.x, next.stations.local.y, next.stations.partner?.x ?? 0, next.stations.partner?.y ?? 0].map(Math.round)])
       if (key !== lastLayout.current) { lastLayout.current = key; setLayout(next) }
@@ -99,11 +100,26 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
         // Each reading of the game moves the run on; what happened shows as moments.
         game: state => { if (!(globalThis as { __tandemTestGame?: GameState }).__tandemTestGame) onGame.current(state) }
       }, (x, y) => deck.touchPoint(x, y))
+      // A test may play recorded frames (data URLs) on a simulated partner's screens; the app never sets it.
+      const reel = (globalThis as { __tandemPartnerFrames?: string[] }).__tandemPartnerFrames
+      if (reel?.length && !solo) {
+        const images = reel.map(src => { const img = new Image(); img.src = src; return img })
+        const canvas = document.createElement('canvas'), c = canvas.getContext('2d', { willReadFrequently: true })!
+        let k = 0
+        const timer = window.setInterval(() => {
+          const img = images[k++ % images.length]
+          if (!img.complete || !img.naturalWidth) return
+          if (canvas.width !== img.naturalWidth) { canvas.width = img.naturalWidth; canvas.height = img.naturalHeight }
+          c.drawImage(img, 0, 0)
+          deck.setFrame('partner', canvas.width, canvas.height, new Uint8Array(c.getImageData(0, 0, canvas.width, canvas.height).data.buffer))
+        }, 1000 / 30)
+        stopReel = () => clearInterval(timer)
+      }
       // A test may stand in for the game's reading (set before the page loads); the app never sets it.
       const stand = (globalThis as { __tandemTestGame?: GameState }).__tandemTestGame
       if (stand) window.setTimeout(() => onGame.current(stand), 500)
     }
-    return () => { emulator?.detach(); deck.dispose(); cockpit.current = null }
+    return () => { stopReel(); emulator?.detach(); deck.dispose(); cockpit.current = null }
   }, [emulator, solo])
 
   const onGame = useRef<(state: GameState) => void>(() => {})
@@ -166,7 +182,7 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
     {ready && emulator && layout.stations && !pad && <div className="key-strip-anchor" data-hidden={focus !== 'local'} style={{ left: layout.stations.local.x + layout.stations.local.width / 2, top: layout.stations.local.bottom }}><KeyGuide/></div>}
     {error && <p className="play-error" role="alert">{error}</p>}
     {(run ?? loose) && <RunMoments events={(run ?? loose)!.events} names={names ?? null}/>}
-    {(run ?? loose) && ready && game?.trainer?.name && layout.front && <div className="run-scene" data-dim={focus !== 'local'} style={follow()}><RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={home.current.front ?? layout.front} partner={home.current.partner}/></div>}
+    {(run ?? loose) && ready && game?.trainer?.name && layout.front && <div className="run-scene" data-dim={focus !== 'local'} style={follow()}><RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={home.current.front ?? layout.front} partner={focus === 'local' ? home.current.partner : undefined}/></div>}
     {settingsOpen && <div className="cockpit-settings" role="dialog" aria-label="Settings">
       <button className="hud-button cockpit-settings-close" onClick={() => setSettingsOpen(false)} aria-label="Close"><X size={16}/></button>
       <QuickSettings/>
@@ -175,7 +191,7 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
       <button className="hud-button" onClick={onExit} aria-label="Back to setup" title="Back (Esc)"><ArrowLeft size={16} strokeWidth={1.75}/></button>
       <button className="hud-button" onClick={() => setSettingsOpen(true)} aria-label="Settings" title="Settings"><Settings2 size={16} strokeWidth={1.75}/></button>
     </div>
-    {layout.front && <div className="play-volume" data-visible={hud} style={{ left: layout.front.right + 14, top: layout.front.bottom - 32 }}>
+    {layout.front && <div className="play-volume" data-visible={hud} data-side="left" style={{ left: layout.front.left - 46, top: layout.front.bottom - 32 }}>
       <div className="hud-volume">
         <input className="hud-slider" type="range" min={0} max={1} step={.01} value={level} aria-label="Volume" style={{ '--level': level } as CSSProperties}
           onChange={event => { setVolume(Number(event.target.value)); setMuted(false) }} onPointerUp={event => event.currentTarget.blur()}/>

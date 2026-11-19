@@ -89,6 +89,7 @@ export function BossSheet({ names, badges, caps, scouting, stops, ruledOut, styl
   const tint = boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b'
   return <div className="boss-sheet" data-side={side} data-wide={wide} ref={sheet} role="dialog" aria-label={boss.name} style={{ ...style, '--type': tint } as CSSProperties}>
     <header className="boss-head" key={boss.name}>
+      {wide && <svg className="run-next-mark" viewBox="0 9 180 63" preserveAspectRatio="xMaxYMid meet" aria-hidden><text x="0" y="72" textLength="180" lengthAdjust="spacingAndGlyphs">NEXT</text></svg>}
       <BossFace names={names} boss={boss} size={104}/>
       <span>
         {beaten.length > 0 && <ol className="boss-shelf" aria-label="Badges">{beaten.map(b => <li key={b.name} title={`${b.name} · ${b.badge}`}><BossFace names={names} boss={b} size={24}/></li>)}</ol>}
