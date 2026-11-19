@@ -14,7 +14,7 @@ State of Tandem on 2026-11-18, for the next agent. Read AGENTS.md, PRODUCT.md, d
 - Main menu: the DS turned left, Solo / Soul Link / Settings panels beside it, the Tandem mark on both screens, music from the ROM's sound archive with a now-playing pill under the console and a prism ring visualizer.
 - Solo runs: one per game on its own save; New run with Classic / Hardcore / Custom rules and restrictions; Play resumes.
 - Tracking from RAM once a second (`src/main/emulator/host.ts`): trainer, party, boxes, badges, and the zone the player is in (`src/shared/zones.ts`). `src/shared/run.ts` turns readings into catches, deaths, badges, cap breaches and run end.
-- ROM data (`src/main/romtext.ts`, `icons.ts`, `trainers.ts`), cached per ROM under `names/<sha>-5.json`: species and place names, types, evolution lines, party icons, type labels, Gym Leader portraits, and every boss's Normal-mode team with moves and items.
+- ROM data (`src/main/romtext.ts`, `icons.ts`, `trainers.ts`), cached per ROM under `names/<sha>-6.json`: species and place names, types, evolution lines, party icons, type labels, Gym Leader portraits, and every boss's Normal-mode team with moves and items.
 - Cockpit (`src/renderer/src/RunView.tsx`, `BossSheet.tsx`): left, the place sign and the team; right, the next boss. Clicking the boss unfolds the current goal: badges so far, the story route to the next gym, the boss's team (moves on pointing), and the best attacking types. Moments show events as they happen.
 
 ## Verified, and how
@@ -27,10 +27,10 @@ State of Tandem on 2026-11-18, for the next agent. Read AGENTS.md, PRODUCT.md, d
 
 ## Next
 
-1. Validate the zone reader on routes and in other towns in a real game, and match the player's place against the boss route (`path` in `src/shared/progression.ts`) to show progress along it.
+1. Validate the zone reader on routes and in other towns in a real game; the task card's route progress depends on it (`nextStep` in `src/shared/progression.ts`). The place sign has no in-game art yet: the game's own area-name banner graphics were not located in the ROM.
 2. Per-area encounter state on the place sign (open, caught, used up). Needs to know which zones have wild encounters; the zone header field at +0x14 was inspected and is not a clean flag.
 3. Fallen Pokémon as a greyed row under the team; Hall of Fame and Elite Four progress so the goal reaches Iris.
-4. Soul Link: linked pairs per area, the partner's badges, a shared goal. Needs the room service and partner data over the network, which are not built.
+4. Soul Link: linked pairs per area, the partner's badges, a shared goal. Needs the room service and partner data over the network, which are not built. The cockpit already moves the task into the left column when the partner's screens would be covered; this has not been seen with a partner's screens on screen.
 5. Portraits for the Elite Four and Iris (their class graphics in a/2/9/1 have no head).
 
 ## Standing rules from the user

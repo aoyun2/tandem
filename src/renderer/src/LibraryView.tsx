@@ -79,7 +79,8 @@ export function LibraryView({ library, current, busy, error, onPlay, onAdd, onFo
   const played = chosen ? read<number>('last-played')[chosen.sha256] : undefined
   const time = chosen ? read<number>('play-time')[chosen.sha256] : undefined
   const usable = !!chosen && !chosen.missing
-  const shot = saveShot(chosen?.sha256) ?? files.map(f => saveShot(f.sha256)).find(Boolean)
+  const active = (sha?: string) => runs.find(r => r.mode === 'solo' && !r.endedAt && r.romSha === sha)
+  const shot = saveShot(active(chosen?.sha256)?.id ?? chosen?.sha256) ?? files.map(f => saveShot(active(f.sha256)?.id ?? f.sha256)).find(Boolean)
 
   // Shelf focus: the games, then Add ROM.
   const [focus, setFocus] = useState(GAMES.findIndex(g => g.game === selected))
@@ -151,11 +152,10 @@ export function LibraryView({ library, current, busy, error, onPlay, onAdd, onFo
         {chosen && <div className="library-stats">
           <span title="Play time"><Clock size={15}/>{time ? duration(time) : '0 min'}</span>
           <span title="Last played"><CalendarClock size={15}/>{played ? ago(played) : 'Never'}</span>
-          <span title="Cartridge save"><Save size={15}/>{details?.save ? `Saved ${ago(details.save.modified)}` : 'No save'}</span>
           <span title={`${chosen.language} · Revision ${chosen.revision}`}><HardDrive size={15}/>{megabytes(chosen.size)}</span>
         </div>}
         {(() => {
-          const mine = runs.filter(r => files.some(f => f.sha256 === r.romSha)).slice(0, 4)
+          const mine = runs.filter(r => !r.endedAt && files.some(f => f.sha256 === r.romSha))
           return mine.length > 0 && <ol className="library-runs" aria-label="Runs">{mine.map(r => {
             const caught = Object.keys(r.pokemon).length, fallen = Object.values(r.pokemon).filter(p => p.status === 'dead').length
             const Result = r.result === 'won' ? Trophy : r.result === 'lost' ? Skull : r.result === 'abandoned' ? Flag : CircleDot
@@ -191,7 +191,7 @@ export function LibraryView({ library, current, busy, error, onPlay, onAdd, onFo
           {!owned && <span className="library-capsule-add"><Plus size={20}/></span>}
         </button>
       })}
-      <button role="option" aria-selected={focus === GAMES.length} className="library-capsule library-add-tile" disabled={busy} onClick={() => { if (focus === GAMES.length) onAdd(); else choose(GAMES.length) }}>
+      <button role="option" aria-selected={focus === GAMES.length} className="library-capsule library-add-tile" disabled={busy} onClick={() => { choose(GAMES.length); onAdd() }}>
         {busy ? <span className="spinner"/> : <Plus size={22}/>}<span>Add ROM</span>
       </button>
     </div>

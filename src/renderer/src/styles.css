@@ -1152,3 +1152,116 @@ span.type-label{width:auto;padding:0 5px;border-radius:3px;background:var(--type
 .run-place-catch{margin:-10px -6px -8px 0}
 @keyframes run-place{from{opacity:0;translate:14px 0}}
 @media(prefers-reduced-motion:reduce){.run-place{animation:none}}
+/* The confirm ring follows the panel's face, which moves on hover, not its fixed hit area. */
+.main-menu-item[data-confirmed]::after{display:none}
+.main-menu-item[data-confirmed] .main-menu-face::after{content:'';position:absolute;inset:-3px;border-radius:25px;padding:2px;background:conic-gradient(from var(--prism-turn),var(--prism-coral),var(--prism-gold),var(--prism-mint),var(--prism-blue),var(--prism-coral));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);pointer-events:none;animation:prism-ring .7s cubic-bezier(.2,.9,.2,1) forwards;filter:drop-shadow(0 0 8px #ffe29a88)}
+/* Now playing: a caption centred along the bottom of the main menu, not a widget. */
+.now-playing{left:50%;right:auto;top:auto;bottom:34px;translate:-50% 0;display:grid;grid-template-columns:repeat(3,auto);grid-template-areas:"t t t" "p q n";justify-content:center;justify-items:center;row-gap:6px;column-gap:10px;padding:0;background:none;backdrop-filter:none;box-shadow:none;border-radius:0;text-align:center}
+.now-playing-title{grid-area:t;align-items:center;margin:0;min-width:0;text-shadow:0 2px 12px #000c}
+.now-playing-title b{font-size:20px;font-weight:700;letter-spacing:.01em}
+.now-playing-title em{font-size:13px}
+.np-button{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:none;color:#cfc9be;opacity:.7;transition:opacity .2s,background .2s}
+.np-button:hover{opacity:1;background:#ffffff12}
+.now-playing .np-button:nth-of-type(1){grid-area:p}.now-playing .np-button:nth-of-type(2){grid-area:q}.now-playing .np-button:nth-of-type(3){grid-area:n}
+.main-menu-title{position:absolute;left:50%;top:58px;margin:0;translate:-50% 0;font:500 64px/1 'Source Serif 4',Georgia,serif;letter-spacing:-.02em;color:#f4efe6;text-shadow:0 6px 30px #000a;opacity:0;transition:opacity .5s,translate .6s cubic-bezier(.2,.9,.2,1);pointer-events:none}
+.main-menu[data-stage=menu] .main-menu-title{opacity:1}
+.main-menu[data-stage=open] .main-menu-title{translate:-50% -12px}
+/* The main menu title: the mark and the wordmark, as in the top bar, larger. */
+.main-menu-title{display:flex;align-items:center;gap:22px;font:600 38px/1 'Source Sans 3',sans-serif;letter-spacing:.32em;text-transform:uppercase;text-shadow:0 6px 30px #000a}
+.main-menu-title svg{width:46px;height:46px;color:#f4efe6}
+.main-menu-title span{margin-right:-.32em}
+/* On Home and Library the top bar lies over the scene; on the menu its tabs and profile fade out. */
+.app:has(.page-setup[data-active=true]) .app-bar{position:absolute;inset:0 0 auto;z-index:60;background:transparent;border:0;box-shadow:none;backdrop-filter:none}
+.app-bar .tabs,.app-bar .profile,.app-bar .wordmark{transition:opacity .5s ease,translate .5s cubic-bezier(.2,.9,.2,1)}
+.app-bar[data-menu=true] .tabs,.app-bar[data-menu=true] .profile{opacity:0;translate:0 -6px;pointer-events:none}
+/* The library keeps one size whichever game is chosen; the hero's content sits at the top of a fixed space. */
+.library-hero{height:430px;min-height:0;align-items:start;align-content:start}
+.library[data-banner=true] .library-hero,.library-hero{padding-top:168px}
+/* Main task card: the boss's face full bleed on the left, fading into the card; the task beside it. */
+button.run-objective{gap:12px;min-width:230px;padding:0 16px 0 0;overflow:hidden}
+button.run-objective .boss-face{align-self:stretch;width:68px!important;height:auto!important;min-height:64px;object-fit:cover;object-position:50% 20%;border-radius:0;background:none;box-shadow:none;-webkit-mask-image:linear-gradient(90deg,#000 62%,transparent);mask-image:linear-gradient(90deg,#000 62%,transparent)}
+button.run-objective>span{display:flex;flex-direction:column;gap:6px;padding:12px 0}
+button.run-objective b{font-size:16px;color:#f4efe6;white-space:nowrap}
+.run-steps{display:flex;gap:3px}
+.run-steps u{width:10px;height:3px;border-radius:2px;background:#ffffff1f;text-decoration:none}
+.run-steps u[data-on=true]{background:color-mix(in srgb,var(--type) 80%,#fff)}
+.run-steps u[data-next=true]{background:#f4efe6;box-shadow:0 0 6px #fff8}
+/* Faces are drawn full bleed: no plate behind them. */
+.boss-face{display:inline-grid;place-items:center;flex:none;border-radius:0;background:none;box-shadow:none;image-rendering:pixelated;object-fit:cover}
+.boss-face[data-symbol]{color:color-mix(in srgb,var(--type,#f2c66b) 55%,#f4efe6)}
+.boss-head{position:relative;align-items:flex-end;gap:14px;margin:-12px -12px 0;padding:0 14px 0 0;min-height:104px}
+.boss-head>.boss-face{-webkit-mask-image:linear-gradient(90deg,#000 60%,transparent),linear-gradient(#000 70%,transparent);mask-image:linear-gradient(90deg,#000 60%,transparent);border-radius:18px 0 0 0}
+.boss-head>span{padding-bottom:12px;gap:6px}
+.boss-head strong{align-self:center}
+.boss-shelf{gap:2px}
+.boss-shelf li .boss-face{box-shadow:none;filter:drop-shadow(0 2px 4px #000a)}
+.boss-path li[data-done=true]{color:#f4efe6}
+.boss-path li[data-done=true] i{background:color-mix(in srgb,var(--type) 80%,#fff)}
+.boss-path li[data-next=true]{font-weight:700;color:#fff;text-shadow:0 0 10px #fff6}
+.boss-path li[data-goal]{gap:0;padding:2px 10px}
+.boss-path li[data-goal] i{display:none}
+/* Team: icons alone; the one shown in the profile is lit. */
+.boss-team ul{grid-template-columns:repeat(6,1fr)}
+.boss-team li{display:flex;flex-direction:column;align-items:center;gap:0;padding:0 0 4px;background:none;box-shadow:none;border-radius:12px;cursor:pointer;transition:background .15s}
+.boss-team li .mon-icon{grid-row:auto;margin:-6px 0 -4px}
+.boss-team li[data-open=true]{background:color-mix(in srgb,var(--type) 22%,transparent)}
+.boss-team li .boss-level{font-size:13px}
+.boss-team .boss-moves{display:none}
+/* The profile of the Pokémon pointed at, as its summary would show it. */
+.mon-profile{display:flex;flex-direction:column;gap:10px;padding:10px 12px 12px;border-radius:14px;background:linear-gradient(160deg,color-mix(in srgb,var(--type) 18%,#ffffff06),#ffffff04);animation:boss-swap .25s cubic-bezier(.2,.9,.2,1) both}
+.mon-profile header{display:flex;align-items:center;gap:8px}
+.mon-profile header .mon-icon{margin:-12px -6px -8px -10px}
+.mon-profile header>span:first-of-type{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.mon-profile header b{font-size:16px;color:#f4efe6}.mon-profile header em{font-style:normal;font-size:12px;color:var(--dim)}
+.mon-types{display:flex;gap:3px;margin-left:auto}
+.mon-types .type-label{width:48px;height:24px}
+.mon-stats{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin:0;padding:0;list-style:none}
+.mon-stats li{display:grid;grid-template-columns:30px 1fr 28px;align-items:center;gap:6px;font-size:11.5px;color:var(--dim)}
+.mon-stats i{height:5px;border-radius:3px;background:linear-gradient(90deg,color-mix(in srgb,var(--type) 70%,#fff) calc(var(--share) * 100%),#ffffff14 0)}
+.mon-stats b{text-align:right;font-size:12.5px;color:#f4efe6}
+.mon-matchups{display:flex;flex-wrap:wrap;gap:6px 14px}
+.mon-matchups div{display:flex;align-items:center;gap:3px}
+.mon-matchups strong{margin-right:3px;font-size:12px;color:#e88a8a}
+.mon-matchups div[data-mark='×½'] strong,.mon-matchups div[data-mark='×0'] strong{color:#9ff0c8}
+.mon-moves{display:flex;flex-direction:column;gap:4px;margin:0;padding:0;list-style:none}
+.mon-moves li{display:grid;grid-template-columns:32px 32px 1fr 30px 30px;align-items:center;gap:6px;padding:3px 6px;border-radius:8px;background:#ffffff07;font-size:12.5px;color:#d8d2c8}
+.mon-moves b{font-weight:600;color:#f4efe6}
+.mon-moves span{text-align:right;font-variant-numeric:tabular-nums}
+.run-left .run-objective{position:static;transform:none;animation:none;width:100%}
+.boss-sheet[data-side=left]{transform:perspective(900px) rotateY(24deg);transform-origin:100% 0}
+/* Development: one tile per stage, its progress as a lit track. */
+.roadmap-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin:0;padding:0;list-style:none}
+.roadmap-tiles li{display:flex;flex-direction:column;gap:14px;padding:22px 20px 18px;border-radius:20px;background:linear-gradient(160deg,#1d1f23,#141518);box-shadow:inset 0 0 0 1px #ffffff10,0 18px 40px -22px #000;color:#cfc9be;cursor:default;transition:transform .2s cubic-bezier(.2,.9,.2,1),box-shadow .2s}
+.roadmap-tiles li:hover{transform:translateY(-3px);box-shadow:inset 0 0 0 1px #ffffff22,0 22px 44px -20px #000}
+.roadmap-tiles li svg{color:#8d8a84}
+.roadmap-tiles li[data-done=true] svg{color:var(--prism-mint)}
+.roadmap-tiles b{font-size:17px;color:#f4efe6}
+.roadmap-tiles i{display:flex;gap:4px;margin-top:auto}
+.roadmap-tiles u{flex:1;height:4px;border-radius:2px;background:#ffffff14;text-decoration:none}
+.roadmap-tiles u[data-on=true]{background:linear-gradient(90deg,var(--prism-coral),var(--prism-gold),var(--prism-mint),var(--prism-blue));background-size:400% 100%}
+.roadmap-tiles u:nth-child(2)[data-on=true]{background-position:33% 0}.roadmap-tiles u:nth-child(3)[data-on=true]{background-position:66% 0}.roadmap-tiles u:nth-child(4)[data-on=true]{background-position:100% 0}
+.onboarding-avatar{position:relative;cursor:pointer;overflow:hidden}
+.onboarding-avatar img,.profile i img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.onboarding-avatar-edit{position:absolute;right:6px;bottom:6px;padding:4px;border-radius:50%;background:#0e0f11cc;color:#f4efe6;opacity:0;transition:opacity .2s;box-sizing:content-box}
+.onboarding-avatar:hover .onboarding-avatar-edit{opacity:1}
+.profile i{overflow:hidden}
+.onboarding-form .onboarding-avatar{flex:none;align-self:center;width:88px;height:88px;justify-self:center}
+.boss-sheet{width:468px}
+.mon-profile header .mon-name{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.mon-profile header .mon-name b{font-size:17px}
+.mon-types{flex:none}
+.mon-stats li{grid-template-columns:32px minmax(0,1fr) 30px}
+.mon-moves li{grid-template-columns:32px 32px minmax(0,1fr) 34px 34px}
+.mon-moves b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Settings during play, like the console's touch screen. */
+.quick-settings{display:flex;flex-direction:column;gap:14px;width:380px;padding:6px 4px}
+.quick-bar{display:flex;align-items:center;gap:5px}
+.quick-bar button{flex:1;height:26px;padding:0;border:0;border-radius:6px;background:#ffffff14;cursor:pointer;transition:background .15s}
+.quick-bar button:hover{background:#ffffff2a}
+.quick-bar button[data-on=true]{background:linear-gradient(90deg,var(--prism-coral),var(--prism-gold),var(--prism-mint),var(--prism-blue));background-size:1000% 100%}
+.quick-bar button:nth-child(3){background-position:11% 0}.quick-bar button:nth-child(4){background-position:22% 0}.quick-bar button:nth-child(5){background-position:33% 0}.quick-bar button:nth-child(6){background-position:44% 0}.quick-bar button:nth-child(7){background-position:55% 0}.quick-bar button:nth-child(8){background-position:66% 0}.quick-bar button:nth-child(9){background-position:77% 0}.quick-bar button:nth-child(10){background-position:88% 0}.quick-bar button:nth-child(11){background-position:100% 0}
+.quick-bar button:not([data-on=true]){background:#ffffff14}
+.quick-bar .quick-glyph{flex:none;width:34px;display:grid;place-items:center;background:none;color:#f4efe6}
+.quick-quality{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.quick-quality button{height:40px;border:0;border-radius:12px;background:#ffffff12;color:#f4efe6;font:700 15px 'Source Sans 3',sans-serif;cursor:pointer}
+.quick-quality button[aria-checked=true]{background:#ece8e0;color:#101113}

@@ -25,3 +25,13 @@ export const trainersOf = (boss: Boss) => boss.members ?? [boss.name]
 
 /** The next boss for a number of badges. */
 export const nextBoss = (badges: number) => BOSSES[Math.min(badges, BOSSES.length - 1)]
+
+/**
+ * The next step towards a boss: the place after the furthest one on its path the player has been to, or null once the
+ * path is done and the boss is next; `done` counts the places behind.
+ */
+export function nextStep(boss: Boss, been: (place: string) => boolean): { place: string | null; done: number } {
+  let done = 0
+  boss.path.forEach((place, i) => { if (been(place)) done = i + 1 })
+  return { place: done < boss.path.length ? boss.path[done] : null, done }
+}

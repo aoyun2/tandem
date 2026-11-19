@@ -7,12 +7,12 @@ import { existsSync } from 'node:fs'
 import { inspectHeader } from '../shared/rom'
 import { saveSummary } from '../shared/gen5'
 import { forget, readLibrary, remember, stillThere } from './library'
-import { addRun, readProfile, readRuns, runSave, saveProfile, saveRun } from './runs'
-import { evolutionLines, gameNames, locate, speciesTypes } from './romtext'
+import { addRun, isPhoto, readProfile, readRuns, runSave, saveProfile, saveRun } from './runs'
+import { evolutionLines, gameNames, locate, narcFiles, speciesTypes } from './romtext'
 import { findSdat, readTrack } from './sdat'
 import { speciesIcons, trainerFaces } from './icons'
 import { BOSSES, trainersOf } from '../shared/progression'
-import { trainerTeams, typeLabels } from './trainers'
+import { categoryIcons, trainerTeams, typeLabels } from './trainers'
 import { checkRules, newRun, type Run } from '../shared/run'
 import type { GameNames, InspectResult, LibraryRom, NewRun, RomDetails, StartResult } from '../shared/api'
 import type { EmulatorConfig } from '../shared/emulator'
@@ -81,12 +81,19 @@ function createWindow() {
   ipcMain.handle('app:profile', async event => {
     if (event.sender !== win.webContents) return null
     const data = app.getPath('userData'), stored = await readProfile(data)
-    return { name: stored?.name ?? userInfo().username, region: app.getLocaleCountryCode(), set: !!stored }
+    return { name: stored?.name ?? userInfo().username, region: app.getLocaleCountryCode(), set: !!stored, photo: stored?.photo }
   })
   ipcMain.removeHandler('app:setProfile')
   ipcMain.handle('app:setProfile', async (event, name: unknown) => {
     if (event.sender !== win.webContents || typeof name !== 'string' || !name.trim() || name.length > 32) return
-    await saveProfile(app.getPath('userData'), { name })
+    const data = app.getPath('userData'), stored = await readProfile(data)
+    await saveProfile(data, { name, photo: stored?.photo })
+  })
+  ipcMain.removeHandler('app:setPhoto')
+  ipcMain.handle('app:setPhoto', async (event, photo: unknown) => {
+    if (event.sender !== win.webContents || (photo !== null && !isPhoto(photo))) return
+    const data = app.getPath('userData'), stored = await readProfile(data)
+    await saveProfile(data, { name: stored?.name ?? userInfo().username, ...(photo ? { photo } : {}) })
   })
   if (splash) {
     splash.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
@@ -177,11 +184,19 @@ app.whenReady().then(() => {
     const ui = await archive('a/0/8/2')
     try { return ui ? typeLabels(ui) : undefined } catch { return undefined }
   }
+  const categoriesOf = async (archive: (path: string) => Promise<Buffer | null>) => {
+    const ui = await archive('a/0/8/2')
+    try { return ui ? categoryIcons(ui) : undefined } catch { return undefined }
+  }
+  const baseOf = async (archive: (path: string) => Promise<Buffer | null>) => {
+    const personal = await archive('a/0/1/6')
+    try { return personal ? narcFiles(personal).slice(0, 650).map(p => Array.from(p.subarray(0, 6))) : undefined } catch { return undefined }
+  }
   // Species and place names, types, evolution lines, icons, type labels, boss portraits and teams, read from the ROM and cached per fingerprint.
   ipcMain.handle('rom:names', async (event, token: unknown): Promise<GameNames | null> => {
     const rom = window && event.sender === window.webContents && typeof token === 'string' ? roms.get(token) : undefined
     if (!rom) return null
-    const cache = join(app.getPath('userData'), 'names', `${rom.sha256}-5.json`)
+    const cache = join(app.getPath('userData'), 'names', `${rom.sha256}-6.json`)
     try { return JSON.parse(await readFile(cache, 'utf8')) } catch { /* not cached yet */ }
     const file = await open(rom.path, 'r')
     try {
@@ -190,7 +205,7 @@ app.whenReady().then(() => {
       const fnt = await read(header.readUInt32LE(0x40), header.readUInt32LE(0x44)), fat = await read(header.readUInt32LE(0x48), header.readUInt32LE(0x4c))
       const archive = async (path: string) => { const r = locate(fnt, fat, path); return r ? read(r[0], r[1] - r[0]) : null }
       const text = gameNames(await archive('a/0/0/2'))
-      const names = text ? { ...text, types: speciesTypes(await archive('a/0/1/6')), lines: evolutionLines(await archive('a/0/1/9')), icons: await iconsOf(archive), faces: await facesOf(archive), teams: await teamsOf(archive), typeLabels: await labelsOf(archive) } : null
+      const names = text ? { ...text, types: speciesTypes(await archive('a/0/1/6')), lines: evolutionLines(await archive('a/0/1/9')), icons: await iconsOf(archive), faces: await facesOf(archive), teams: await teamsOf(archive), typeLabels: await labelsOf(archive), categoryIcons: await categoriesOf(archive), base: await baseOf(archive) } : null
       if (names) { await mkdir(join(app.getPath('userData'), 'names'), { recursive: true }); await writeFile(cache, JSON.stringify(names)) }
       return names
     } catch { return null } finally { await file.close() }

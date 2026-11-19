@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { ArrowLeft, Award, Copy, Globe, LayoutGrid, Monitor, Play, Plus, RotateCcw, Skull, Unlink } from 'lucide-react'
+import { ArrowLeft, Award, Copy, LayoutGrid, Play, Plus, RotateCcw, Skull } from 'lucide-react'
 import type { LibraryRom, RomInfo } from '../../shared/api'
 import type { PartnerDetails } from './DSPreview'
 import { LibraryView } from './LibraryView'
@@ -38,7 +38,7 @@ const art = (game: string) => new URL(`./art/${game === 'White 2' ? 'white2' : '
 /**
  * The island above your console in setup: the game in the slot, the run mode, and in Soul Link the room and partner; on the Library tab it
  * expands into every ROM you have opened. The room code itself shows
- * on the DS top screen. The island tilts a little down towards you, leans towards the pointer, and resizes smoothly as
+ * on the DS top screen. The island tilts a little down towards you and resizes smoothly as
  * its content changes.
  */
 export function Island({ mode, onMode: _onMode, onBack, run, otherRun, names, runs, sheet, onSheet, onStartRun, rom, library, libraryOpen, link, partner, room, busy, launching, error, onAdd, onLibrary, onCloseLibrary, onPlayRom, onForget, onPlay, onHost, onJoin, onStartJoin, onCancel, onTest }: Props) {
@@ -46,24 +46,10 @@ export function Island({ mode, onMode: _onMode, onBack, run, otherRun, names, ru
   const [size, setSize] = useState<{ width: number; height: number }>()
   useLayoutEffect(() => {
     const el = inner.current!
-    let settle = 0
-    const measure = () => {
-      setSize({ width: el.offsetWidth, height: el.offsetHeight })
-      // The content fades out while the outline morphs to its new size, then back in.
-      const host = outer.current!; host.dataset.morphing = 'true'; clearTimeout(settle); settle = window.setTimeout(() => { delete host.dataset.morphing }, 380)
-    }
+    const measure = () => setSize({ width: el.offsetWidth, height: el.offsetHeight })
     const observer = new ResizeObserver(measure)
     observer.observe(el); measure()
     return () => observer.disconnect()
-  }, [])
-  useEffect(() => {
-    const el = outer.current!
-    const move = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect(), x = (e.clientX - (r.left + r.width / 2)) / innerWidth, y = (e.clientY - (r.top + r.height / 2)) / innerHeight
-      el.style.setProperty('--lean-y', `${(x * 8).toFixed(2)}deg`); el.style.setProperty('--lean-x', `${(-y * 5).toFixed(2)}deg`)
-    }
-    window.addEventListener('pointermove', move)
-    return () => window.removeEventListener('pointermove', move)
   }, [])
   const linked = link === 'linked'
   const team = run ? Object.values(run.pokemon).filter(p => p.status === 'alive' && !p.boxed).slice(0, 6) : []
@@ -123,12 +109,9 @@ export function Island({ mode, onMode: _onMode, onBack, run, otherRun, names, ru
           </> : <div className="island-status" data-link={link}>
             {linked ? <><span className="island-avatar">{partner.name.slice(0, 1).toUpperCase()}</span>{partner.name}</>
               : link === 'connecting' ? <><span className="pearl-puck" aria-hidden="true"/>Connecting</>
-              : <span className="island-avatar" data-empty title="No partner"><Unlink size={14}/></span>}
+              : null}
             {linked && partner.simulated && <span className="island-pill">Test</span>}
-            {linked && <span className="island-where" title={partner.local ? 'On this computer' : undefined}>
-              {partner.local ? <Monitor size={14} strokeWidth={1.75}/> : <Globe size={14} strokeWidth={1.75}/>}
-              <Signal ping={partner.ping}/>
-            </span>}
+            {linked && <span className="island-where"><Signal ping={partner.ping}/></span>}
             {linked && <button className="island-quiet" onClick={onTest}>End test link</button>}
           </div>}
           {room.mode === 'menu' && link === 'idle' && <div className="island-actions">

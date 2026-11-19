@@ -22,13 +22,14 @@ export type InspectResult =
   | { status: 'error'; message: string }
 
 /** Your name in Tandem and system region; `set` is false until you have chosen a name. */
-export type Profile = { name: string; region: string; set: boolean }
+export type Profile = { name: string; region: string; set: boolean; photo?: string }
 
-/** Read from the ROM: species and place names, each species' two types, its evolution line (lowest species in it), its party icon, the games' type labels, and the bosses' portraits and teams by trainer name; images are PNG data URLs. */
-export type GameNames = { species: string[]; places: string[]; types: [number, number][]; lines: number[]; icons?: string[]; typeLabels?: string[]; faces?: Record<string, string>; teams?: Record<string, TrainerMon[]> }
+/** Read from the ROM: species and place names, each species' two types, its evolution line (lowest species in it), its party icon and base stats (HP, Attack, Defense, Speed, Sp. Atk, Sp. Def), the games' type labels and move
+ * category icons, and the bosses' portraits and teams by trainer name; images are PNG data URLs. */
+export type GameNames = { species: string[]; places: string[]; types: [number, number][]; lines: number[]; icons?: string[]; typeLabels?: string[]; categoryIcons?: string[]; base?: number[][]; faces?: Record<string, string>; teams?: Record<string, TrainerMon[]> }
 
 /** One Pokémon on a trainer's team, as the ROM sets it. */
-export type TrainerMon = { species: number; level: number; item?: string; moves: { name: string; type: number }[] }
+export type TrainerMon = { species: number; level: number; iv?: number; item?: string; moves: { name: string; type: number; category?: number; power?: number; accuracy?: number; pp?: number }[] }
 
 export type NewRun = { token: string; mode: 'solo' | 'soul-link'; partner?: string; rules: Partial<import('./run').Rules> }
 
@@ -48,6 +49,8 @@ export interface TandemAPI {
   /** Your OS user name and system region, for showing you to your partner. */
   profile(): Promise<Profile | null>
   setProfile(name: string): Promise<void>
+  /** Your photo as a small PNG, JPEG or WebP data URL, or null to remove it. */
+  setPhoto(photo: string | null): Promise<void>
   runs(): Promise<import('./run').Run[]>
   createRun(request: NewRun): Promise<import('./run').Run | null>
   saveRun(run: import('./run').Run): Promise<void>

@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react'
-import { Award, Ban, Copy, Crown, Flame, Hand, Layers, Play, ShieldCheck, Skull, Sparkles, Swords, TriangleAlert, Type, X } from 'lucide-react'
+import { Award, Ban, Copy, Crown, Eye, Flame, Hand, Layers, Play, ShieldCheck, Skull, Sparkles, Swords, TriangleAlert, Type, X } from 'lucide-react'
 import { PRESETS, RESTRICTIONS, type Rules } from '../../shared/run'
 import { TYPES, TYPE_COLORS } from './pokemonTypes'
 
@@ -16,7 +16,8 @@ const TILES: { key: keyof Rules; icon: typeof Award; name: string; options: read
   { key: 'setMode', icon: Swords, name: 'Set', honour: true, options: [[true, '', 'Set battle style'], [false, '', 'Any battle style']] },
   { key: 'nicknames', icon: Type, name: 'Nicknames', honour: true, options: [[true, '', 'Nickname every catch'], [false, '', 'Nicknames optional']] },
   { key: 'typeClause', icon: Layers, name: 'Types', options: [['party', 'Unique', 'No repeated primary type in the team'], ['mono', 'Mono', 'Every catch has the chosen type'], ['off', '', 'Any types']] },
-  { key: 'noLegendaries', icon: Crown, name: 'Legends', options: [[true, '', 'No legendary or mythical Pokémon'], [false, '', 'Legendaries allowed']] }
+  { key: 'noLegendaries', icon: Crown, name: 'Legends', options: [[true, '', 'No legendary or mythical Pokémon'], [false, '', 'Legendaries allowed']] },
+  { key: 'scouting', icon: Eye, name: 'Scouting', options: [[true, '', 'Boss teams are shown before the battle'], [false, '', 'Boss teams stay hidden until the battle']] }
 ]
 const isOff = (v: unknown) => v === false || v === 'off'
 

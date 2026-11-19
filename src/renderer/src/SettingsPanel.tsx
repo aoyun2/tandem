@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Gauge, Music2, RotateCcw, Sparkles, Volume2 } from 'lucide-react'
-import { changeSettings, watchSettings, type Settings } from './settings'
+import { changeSettings, settings, watchSettings, type Settings } from './settings'
 import { bindKey, keyLabel, loadKeys, resetBindings } from './input/bindings'
 import { BUTTONS } from './input/buttons'
 import { DsGlyph } from './ControlsOverlay'
@@ -52,5 +52,22 @@ export function SettingsPanel() {
       </button>)}
       <button className="settings-reset" onClick={() => { resetBindings(); setKeys(loadKeys()) }} title="Default keys" aria-label="Default keys"><RotateCcw size={16}/></button>
     </section>
+  </div>
+}
+
+/** Settings during play, drawn like the console's touch screen: a ten-step bar for each volume and the quality switch. */
+export function QuickSettings() {
+  const [s, setS] = useState(settings())
+  useEffect(() => watchSettings(setS), [])
+  const bar = (kind: 'music' | 'effects', Icon: typeof Music2) => <div className="quick-bar" role="slider" aria-label={kind === 'music' ? 'Music' : 'Effects'} aria-valuemin={0} aria-valuemax={10} aria-valuenow={Math.round(s[kind] * 10)}>
+    <button type="button" className="quick-glyph" onClick={() => changeSettings({ [kind]: 0 })} aria-label="Mute"><Icon size={17}/></button>
+    {Array.from({ length: 10 }, (_, k) => <button type="button" key={k} data-on={k < Math.round(s[kind] * 10)} onClick={() => changeSettings({ [kind]: (k + 1) / 10 })} aria-label={`${(k + 1) * 10}%`}/>)}
+  </div>
+  return <div className="quick-settings">
+    {bar('music', Music2)}
+    {bar('effects', Volume2)}
+    <div className="quick-quality" role="radiogroup" aria-label="Quality">
+      {(['balanced', 'high'] as const).map(q => <button type="button" key={q} role="radio" aria-checked={s.quality === q} onClick={() => changeSettings({ quality: q })}>{q === 'high' ? 'High' : 'Balanced'}</button>)}
+    </div>
   </div>
 }

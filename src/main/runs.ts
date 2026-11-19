@@ -40,16 +40,19 @@ export async function saveRun(userData: string, run: Run) {
   await writeJson(runsFile(userData), runs)
 }
 
-export type StoredProfile = { name: string }
+/** Your name and, when you chose one, your photo as a small image data URL. */
+export type StoredProfile = { name: string; photo?: string }
+
+export const isPhoto = (v: unknown): v is string => typeof v === 'string' && v.length < 400_000 && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v)
 
 export async function readProfile(userData: string): Promise<StoredProfile | null> {
   try {
     const p = JSON.parse(await readFile(profileFile(userData), 'utf8'))
     if (typeof p?.name !== 'string' || !p.name.trim()) return null
-    return { name: p.name.trim().slice(0, 16) }
+    return { name: p.name.trim().slice(0, 16), ...(isPhoto(p.photo) ? { photo: p.photo } : {}) }
   } catch { return null }
 }
 
 export async function saveProfile(userData: string, profile: StoredProfile) {
-  await writeJson(profileFile(userData), { name: profile.name.trim().slice(0, 16), updatedAt: Date.now() })
+  await writeJson(profileFile(userData), { name: profile.name.trim().slice(0, 16), ...(isPhoto(profile.photo) ? { photo: profile.photo } : {}), updatedAt: Date.now() })
 }

@@ -100,6 +100,9 @@ export class SequencePlayer {
   private pulses = new Map<number, PeriodicWave>()
   private voices = new Set<AudioScheduledSourceNode>()
   stopped = false
+  /** Called once when every track of the sequence has finished. */
+  onEnd: (() => void) | null = null
+  private ended = false
   private target: number
 
   constructor(private ctx: AudioContext, private track: TrackData, destination: AudioNode) {
@@ -144,13 +147,14 @@ export class SequencePlayer {
     while (this.time < until && this.tracks.some(t => !t.done) && guard++ < 20000) {
       for (let i = 0; i < this.tracks.length; i++) {
         const t = this.tracks[i]
-        if (t.done) continue
+        if (!t || t.done) continue
         if (t.wait > 0) t.wait--
         let steps = 0
         while (!t.done && t.wait === 0 && steps++ < 500) this.step(t)
       }
       this.time += 60 / (this.tempo * 48)
     }
+    if (!this.ended && !this.stopped && this.tracks.every(t => t.done)) { this.ended = true; this.onEnd?.() }
   }
 
   private varlen(t: TrackState) {

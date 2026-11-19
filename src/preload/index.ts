@@ -13,6 +13,7 @@ const api: TandemAPI = {
   appReady: () => ipcRenderer.invoke('app:ready'),
   profile: () => ipcRenderer.invoke('app:profile'),
   setProfile: name => ipcRenderer.invoke('app:setProfile', name),
+  setPhoto: photo => ipcRenderer.invoke('app:setPhoto', photo),
   runs: () => ipcRenderer.invoke('runs:list'),
   createRun: request => ipcRenderer.invoke('runs:create', request),
   saveRun: run => ipcRenderer.invoke('runs:save', run),

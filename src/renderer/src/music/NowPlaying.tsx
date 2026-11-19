@@ -15,6 +15,10 @@ const PLAYLIST = [
   { name: 'SEQ_BGM_E_DENDOUIRI', title: 'Hall of Fame' },
   { name: 'SEQ_BGM_ENDING', title: 'Ending' }
 ]
+/** The playlist in a new random order each time the app starts. */
+const ORDER = PLAYLIST.map((_, i) => i)
+for (let i = ORDER.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ORDER[i], ORDER[j]] = [ORDER[j], ORDER[i]] }
+const piece = (index: number) => PLAYLIST[ORDER[index % ORDER.length]]
 /** Each piece loops in the game; here one plays for this long, then crossfades into the next over CROSSFADE seconds. */
 const PIECE_SECONDS = 150, CROSSFADE = 4
 
@@ -29,31 +33,41 @@ const output = () => {
 export const musicAnalyser = () => analyser
 
 /**
- * Music on the menus from the game in the slot, played from its own sound data, with what is playing shown as a
- * small pill. It fades out when play starts and comes back after.
+ * Music on the menus from the game in the slot, played from its own sound data, with what is playing shown under the
+ * console on the main menu. Each piece hands over to the next by crossfading once the next is loaded, when the piece
+ * ends or after PIECE_SECONDS. It fades out when play starts and comes back after.
  */
-export function NowPlaying({ token, game, quiet, hidden = false }: { token?: string; game?: string; quiet: boolean; hidden?: boolean }) {
+export function NowPlaying({ token, source, game, quiet, hidden = false }: { token?: string; source?: string; game?: string; quiet: boolean; hidden?: boolean }) {
   const [index, setIndex] = useState(0), [paused, setPaused] = useState(false), [ready, setReady] = useState(false)
-  const player = useRef<SequencePlayer | null>(null), fade = useRef(2)
+  const player = useRef<SequencePlayer | null>(null), fade = useRef(2), tokenRef = useRef(token)
+  tokenRef.current = token
+  const silent = !source || paused || quiet
   useEffect(() => {
-    const ctx = audio(), out = output()
-    if (!token || !ctx || !out || paused || quiet) return
+    if (!silent) return
+    player.current?.stop(quiet ? 1.2 : .6); player.current = null
+  }, [silent])
+  useEffect(() => {
+    const ctx = audio(), out = output(), from = tokenRef.current
+    if (silent || !ctx || !out || !from) return
     let cancelled = false, timer = 0
-    void window.tandem?.track(token, PLAYLIST[index].name).then(track => {
-      if (cancelled || !track) return
+    const next = () => { if (!cancelled) { cancelled = true; fade.current = CROSSFADE; setIndex(i => (i + 1) % PLAYLIST.length) } }
+    void window.tandem?.track(from, piece(index).name).then(track => {
+      if (cancelled) return
+      if (!track) { next(); return }
       const p = new SequencePlayer(ctx, track, out)
-      // One piece hands over to the next by crossfading; a skip crossfades quickly.
-      player.current = p; p.start(fade.current); setReady(true)
-      timer = window.setTimeout(() => { fade.current = CROSSFADE; setIndex(i => (i + 1) % PLAYLIST.length) }, PIECE_SECONDS * 1000)
+      player.current?.stop(fade.current)
+      player.current = p; p.onEnd = next; p.start(fade.current); setReady(true)
+      timer = window.setTimeout(next, PIECE_SECONDS * 1000)
     })
-    return () => { cancelled = true; clearTimeout(timer); player.current?.stop(quiet ? 1.2 : fade.current); player.current = null }
-  }, [token, index, paused, quiet])
-  if (!token) return null
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [source, index, silent])
+  useEffect(() => () => { player.current?.stop(.6); player.current = null }, [])
+  if (!source) return null
   const step = (by: number) => { fade.current = 1; setPaused(false); setIndex(i => (i + by + PLAYLIST.length) % PLAYLIST.length) }
   return <div className="now-playing" data-playing={ready && !paused} data-quiet={quiet || hidden} aria-label="Now playing">
-    <span className="now-playing-title"><b>{PLAYLIST[index].title}</b><em>Pokémon {game}</em></span>
-    <button className="island-icon" onClick={() => step(-1)} aria-label="Previous"><SkipBack size={14}/></button>
-    <button className="island-icon" onClick={() => setPaused(!paused)} aria-label={paused ? 'Play music' : 'Pause music'}>{paused ? <Play size={14}/> : <Pause size={14}/>}</button>
-    <button className="island-icon" onClick={() => step(1)} aria-label="Next"><SkipForward size={14}/></button>
+    <button className="np-button" onClick={() => step(-1)} aria-label="Previous"><SkipBack size={16}/></button>
+    <span className="now-playing-title"><b>{piece(index).title}</b><em>Pokémon {game}</em></span>
+    <button className="np-button" onClick={() => setPaused(!paused)} aria-label={paused ? 'Play music' : 'Pause music'}>{paused ? <Play size={16}/> : <Pause size={16}/>}</button>
+    <button className="np-button" onClick={() => step(1)} aria-label="Next"><SkipForward size={16}/></button>
   </div>
 }

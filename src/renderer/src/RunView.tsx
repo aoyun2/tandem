@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { Award, CircleDot, Flag, HeartCrack, MapPin, Skull, TriangleAlert, Trophy } from 'lucide-react'
+import { Award, CircleDot, Flag, HeartCrack, Skull, TriangleAlert, Trophy } from 'lucide-react'
 import type { GameNames } from '../../shared/api'
 import type { GameState, Run, RunEvent } from '../../shared/run'
 import { play as playSound } from './sfx'
-import { BOSSES, nextBoss } from '../../shared/progression'
+import { BOSSES, nextBoss, nextStep } from '../../shared/progression'
 import { TYPES, TYPE_COLORS } from './pokemonTypes'
 import { MonIcon } from './MonIcon'
-import { BossSheet, TypeLabel } from './BossSheet'
+import { BossFace, BossSheet, TypeLabel } from './BossSheet'
 
 const speciesName = (names: GameNames | null, id: number) => names?.species[id] ?? `#${id}`
 const placeName = (names: GameNames | null, id: number) => names?.places[id] || `Area ${id}`
@@ -39,22 +39,39 @@ function momentText(event: RunEvent, names: GameNames | null): { icon: typeof Aw
 }
 
 /**
- * The run in the cockpit, beside your screens: the team as it stands, with each member's health and level, tinted
- * by its primary type; and the next boss with its type and the cap to stay under, which unfolds into every boss and
- * its team. It follows the game live.
+ * The run in the cockpit, beside your screens: where you are and the team as it stands, with each member's health and
+ * level, tinted by its primary type; and the main task, the next place on the way to the next boss or the boss
+ * itself, with the cap to stay under, which unfolds into the goal. It follows the game live.
  */
-export function RunScene({ run, game, names, front }: { run: Run; game: GameState | null; names: GameNames | null; front: DOMRect }) {
+export function RunScene({ run, game, names, front, partner = null }: { run: Run; game: GameState | null; names: GameNames | null; front: DOMRect; partner?: DOMRect | null }) {
+  // In Soul Link the partner's screens stand to the right: the task moves into the left column rather than cover them.
+  const stack = !!partner && partner.left < front.right + 300 && partner.bottom > front.top && partner.top < front.top + 120
   const party = (game?.party ?? []).filter(p => !p.egg)
   const boss = nextBoss(run.badges)
   const [bosses, setBosses] = useState(false)
   const here = game?.where?.place ?? 0, area = here ? run.areas[String(here)] : undefined
+  const been = new Set((run.visited ?? []).map(i => names?.places[i]).filter(Boolean))
+  const step = nextStep(boss, place => been.has(place))
   const tint = (species: number) => TYPE_COLORS[names?.types?.[species]?.[0] ?? 0]
+  const task = <>
+    {!bosses && <button className="run-objective" data-step={step.place ? 'place' : 'boss'} onClick={() => setBosses(true)} aria-label={step.place ?? boss.name} style={{ ...(stack ? {} : { left: front.right + 18, top: front.top + 8 }), '--type': boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b' } as CSSProperties}>
+      <BossFace names={names} boss={boss} size={68}/>
+      <span>
+        <b>{step.place ?? boss.name}</b>
+        {boss.path.length > 0 && <i className="run-steps" aria-hidden>{[...boss.path, boss.place].map((_, k) => <u key={k} data-on={k < step.done} data-next={k === step.done}/>)}</i>}
+      </span>
+      {!step.place && boss.type !== null && <TypeLabel names={names} type={boss.type}/>}
+      {run.rules.levelCaps && boss.cap !== null && <strong title="Level cap">{boss.cap}</strong>}
+    </button>}
+    {bosses && <BossSheet names={names} badges={run.badges} caps={!!run.rules.levelCaps} scouting={run.rules.scouting !== false} done={step.done} style={stack ? { right: `calc(100% - ${front.left - 18}px)`, top: front.top + 8 } : { left: front.right + 18, top: front.top + 8 }} side={stack ? 'left' : 'right'} onClose={() => setBosses(false)}/>}
+  </>
   return <>
-    <div className="run-left" style={{ right: `calc(100% - ${front.left - 18}px)`, top: front.top + 8 }}>
+    <div className="run-left" data-stack={stack} style={{ right: `calc(100% - ${front.left - 18}px)`, top: front.top + 8 }}>
     {here > 0 && <div className="run-place" key={here} role="status" data-caught={!!area}>
-      <MapPin size={15}/><b>{placeName(names, here)}</b>
+      <b>{placeName(names, here)}</b>
       {area?.species !== undefined && <span className="run-place-catch" title={speciesName(names, area.species)}><MonIcon names={names} species={area.species} size={32} fainted={area.pid !== undefined && run.pokemon[String(area.pid)]?.status === 'dead'}/></span>}
     </div>}
+    {stack && !bosses && task}
     <ol className="run-team" aria-label="Team">
       {party.map(p => {
         const dead = run.pokemon[String(p.pid)]?.status === 'dead' || p.hp === 0
@@ -67,13 +84,7 @@ export function RunScene({ run, game, names, front }: { run: Run; game: GameStat
       })}
     </ol>
     </div>
-    {!bosses && <button className="run-objective" onClick={() => setBosses(true)} aria-label={boss.name} style={{ left: front.right + 18, top: front.top + 8, '--type': boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b' } as CSSProperties}>
-      {names?.faces?.[boss.name] ? <img className="run-face" src={names.faces[boss.name]} alt=""/> : <Award size={18}/>}
-      <span><b>{boss.name}</b><em>{boss.place}</em></span>
-      {boss.type !== null && <TypeLabel names={names} type={boss.type}/>}
-      {run.rules.levelCaps && boss.cap !== null && <strong title="Level cap">{boss.cap}</strong>}
-    </button>}
-    {bosses && <BossSheet names={names} badges={run.badges} caps={!!run.rules.levelCaps} style={{ left: front.right + 18, top: front.top + 8 }} onClose={() => setBosses(false)}/>}
+    {(!stack || bosses) && task}
   </>
 }
 

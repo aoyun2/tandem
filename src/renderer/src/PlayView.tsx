@@ -5,7 +5,7 @@ import { EmulatorSession } from './emulator/session'
 import { KeyGuide } from './KeyGuide'
 import { keepSaveShot } from './LibraryView'
 import { RunMoments, RunScene } from './RunView'
-import { SettingsPanel } from './SettingsPanel'
+import { QuickSettings } from './SettingsPanel'
 import type { GameState } from '../../shared/run'
 import { track, type Run } from '../../shared/run'
 import type { GameNames } from '../../shared/api'
@@ -74,8 +74,8 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
           if (status.fps) root.dataset.fps = status.fps.toFixed(1)
           if (status.savedAt) {
             root.dataset.savedAt = String(status.savedAt)
-            // Both screens as the game saves become this ROM's pictures in the library and on the console at Home.
-            if (romSha && latest) keepSaveShot(romSha, { top: screenImage(latest.width, latest.height, latest.pixels, false), bottom: screenImage(latest.width, latest.height, latest.pixels, true) })
+            // Both screens as the game saves become the pictures of this run (or of the ROM's own save) in the library and at Home.
+            if ((runRef.current?.id ?? romSha) && latest) keepSaveShot(runRef.current?.id ?? romSha!, { top: screenImage(latest.width, latest.height, latest.pixels, false), bottom: screenImage(latest.width, latest.height, latest.pixels, true) })
           }
           if (status.save) root.dataset.save = status.save
           if (status.audio) root.dataset.audio = status.audio
@@ -126,10 +126,10 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
     {ready && emulator && layout.stations && <div className="key-strip-anchor" data-hidden={focus !== 'local'} style={{ left: layout.stations.local.x + layout.stations.local.width / 2, top: layout.stations.local.bottom }}><KeyGuide/></div>}
     {error && <p className="play-error" role="alert">{error}</p>}
     {run && <RunMoments events={run.events} names={names ?? null}/>}
-    {run && ready && game?.trainer?.name && layout.front && <RunScene run={run} game={game} names={names ?? null} front={layout.front}/>}
+    {run && ready && game?.trainer?.name && layout.front && focus === 'local' && <RunScene run={run} game={game} names={names ?? null} front={layout.front} partner={layout.partner}/>}
     {settingsOpen && <div className="cockpit-settings" role="dialog" aria-label="Settings">
       <button className="hud-button cockpit-settings-close" onClick={() => setSettingsOpen(false)} aria-label="Close"><X size={16}/></button>
-      <SettingsPanel/>
+      <QuickSettings/>
     </div>}
     <div className="play-hud" data-visible={hud}>
       <button className="hud-button" onClick={onExit} aria-label="Back to setup" title="Back (Esc)"><ArrowLeft size={16} strokeWidth={1.75}/></button>

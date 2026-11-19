@@ -26,9 +26,11 @@ export type Rules = {
   noLegendaries: boolean
   /** On your honour: nickname every catch, no bag items in battle, the Set battle style. */
   nicknames: boolean; noBattleItems: boolean; setMode: boolean
+  /** Boss teams, their moves and the types to bring are shown before the battle. */
+  scouting: boolean
 }
 
-const CLASSIC: Omit<Rules, 'preset'> = { blackout: 'party', deathless: false, dupes: 'line', shinyClause: true, levelCaps: false, typeClause: 'off', monoType: 0, noLegendaries: false, nicknames: false, noBattleItems: false, setMode: false }
+const CLASSIC: Omit<Rules, 'preset'> = { blackout: 'party', deathless: false, dupes: 'line', shinyClause: true, levelCaps: false, typeClause: 'off', monoType: 0, noLegendaries: false, nicknames: false, noBattleItems: false, setMode: false, scouting: true }
 
 /** Restrictions sit beside a preset rather than in it: they are kept when the preset changes. */
 export const RESTRICTIONS = ['typeClause', 'monoType', 'noLegendaries'] as const
@@ -37,7 +39,7 @@ export const RESTRICTIONS = ['typeClause', 'monoType', 'noLegendaries'] as const
 export const LEGENDARY = new Set([144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251, 377, 378, 379, 380, 381, 382, 383, 384, 385, 386, 480, 481, 482, 483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649])
 export const PRESETS: Record<'classic' | 'hardcore', Omit<Rules, 'preset'>> = {
   classic: CLASSIC,
-  hardcore: { ...CLASSIC, levelCaps: 'strict', noBattleItems: true, setMode: true }
+  hardcore: { ...CLASSIC, levelCaps: 'strict', noBattleItems: true, setMode: true, scouting: false }
 }
 
 /** A run's rules with defaults filled in; runs from before this rule set kept `levelCaps` as a boolean and `blackoutEnds`. */
@@ -89,6 +91,8 @@ export type Run = {
   playTime?: number
   pokemon: Record<string, Tracked>
   areas: Record<string, Area>
+  /** Place-name indices the player has been to during the run, in the order first seen. */
+  visited?: number[]
   events: RunEvent[]
 }
 
@@ -180,6 +184,8 @@ export function track(run: Run, game: GameState, now: number, data: SpeciesData 
   const wiped = rules.blackout === 'party' && game.party.length > 0 && game.party.every(p => p.egg || p.hp === 0)
   const nothingLeft = rules.blackout !== 'off' && owned.length > 0 && owned.every(p => p.status === 'dead')
   if ((rules.deathless && died) || wiped || nothingLeft) { next.endedAt = now; next.result = 'lost'; events.push({ at: now, kind: 'ended', result: 'lost' }) }
+  const place = game.where?.place
+  if (place && !(run.visited ?? []).includes(place)) next.visited = [...(run.visited ?? []), place]
   next.events = [...run.events, ...events]
   return { run: next, events }
 }
@@ -208,7 +214,7 @@ export function checkRules(input: unknown): Rules {
     blackout: pick(i.blackout, ['party', 'box', 'off'] as const), dupes: pick(i.dupes, ['off', 'species', 'line'] as const),
     levelCaps: pick(i.levelCaps, [false, 'warn', 'strict'] as const), typeClause: pick(i.typeClause, ['off', 'party', 'mono'] as const), monoType: pick(i.monoType, Array.from({ length: 17 }, (_, n) => n)), noLegendaries: pick(i.noLegendaries, [true, false]),
     deathless: pick(i.deathless, [true, false]), shinyClause: pick(i.shinyClause, [true, false]), nicknames: pick(i.nicknames, [true, false]),
-    noBattleItems: pick(i.noBattleItems, [true, false]), setMode: pick(i.setMode, [true, false])
+    noBattleItems: pick(i.noBattleItems, [true, false]), setMode: pick(i.setMode, [true, false]), scouting: pick(i.scouting, [true, false])
   }
   return rulesOf(Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined)))
 }

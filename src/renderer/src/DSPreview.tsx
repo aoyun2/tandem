@@ -19,6 +19,8 @@ export type DSPreviewHandle = { insert: () => boolean; reset: () => void }
 /** What the top screen shows in setup under its header: a title, tiles, a room code, short lines, and buttons. */
 export type RoomScreen = {
   title?: string; tiles?: { id: string; label: string }[]; code?: string; codeBoxes?: boolean; lines?: string[]
+  /** In the controls view: the settings drawn on the touch screen, with tappable volume bars and switches. */
+  settings?: { music: number; effects: number; quality: 'balanced' | 'high' }
   /** Idle: the game in the slot, shown as its box art. */
   art?: 'Black 2' | 'White 2'
   /** Linked: both players and their games, joined by the link. */
@@ -42,6 +44,8 @@ const DISPLAY_SCALE = 1.9
 const MARK = '#ece8e0'
 /** How far the console moves left on screen while the menu's panels are out beside it. */
 const MENU_SHIFT_PX = 225
+/** How far the console rises on screen on the menu, below the title. */
+const MENU_LIFT_PX = 64
 /** How far the camera swings round to the right on the menu, in radians. */
 const MENU_TURN = .5
 const UP = new THREE.Vector3(0, 1, 0)
@@ -218,7 +222,7 @@ export function DSPreview({ game, ref, onInsertComplete, onReady, link: linkStat
       }
       c.globalAlpha = 1; c.textAlign = 'center'
       if (!ui) { c.restore(); return }
-      if (!Object.keys(ui).length) { drawMark(c, cx, (T.y0 + T.y1) / 2, 1.5); c.restore(); return }
+      if (!ui.art && !ui.save?.top && ui.code === undefined && !ui.pair) { drawMark(c, cx, (T.y0 + T.y1) / 2, 1.5); c.restore(); return }
       // Idle with a save: the top screen exactly as you left the game.
       const shot = ui.art && ui.save?.top ? saveImage(ui.save.top) : null
       if (shot) { c.imageSmoothingEnabled = false; c.drawImage(shot, T.x0, T.y0, T.x1 - T.x0, T.y1 - T.y0); c.imageSmoothingEnabled = true }
@@ -335,6 +339,47 @@ export function DSPreview({ game, ref, onInsertComplete, onReady, link: linkStat
       if (!img) { img = new Image(); img.onload = () => { for (const screen of screens) screen.repaint() }; img.src = url; if (saves.size > 6) saves.clear(); saves.set(url, img) }
       return img.complete && img.naturalWidth ? img : null
     }
+    // Settings on the touch screen: a bar of ten steps for each volume, the quality switch, and a reset for the keys.
+    const paintSettings = (c: CanvasRenderingContext2D, st: NonNullable<RoomScreen['settings']>) => {
+      const X = TOUCH, w = X.x1 - X.x0, left = X.x0 + 30, right = X.x1 - 30
+      c.textBaseline = 'middle'; c.textAlign = 'left'
+      const glyph = (kind: 'music' | 'effects', x: number, y: number) => {
+        c.save(); c.strokeStyle = MARK; c.fillStyle = MARK; c.lineWidth = 2.4; c.lineCap = 'round'
+        if (kind === 'music') { c.beginPath(); c.ellipse(x - 4, y + 7, 5, 4, -.4, 0, Math.PI * 2); c.fill(); c.beginPath(); c.moveTo(x + 1, y + 6); c.lineTo(x + 1, y - 9); c.lineTo(x + 9, y - 6); c.stroke() }
+        else { c.beginPath(); c.moveTo(x - 8, y - 4); c.lineTo(x - 3, y - 4); c.lineTo(x + 3, y - 9); c.lineTo(x + 3, y + 9); c.lineTo(x - 3, y + 4); c.lineTo(x - 8, y + 4); c.closePath(); c.fill(); c.beginPath(); c.arc(x + 5, y, 6, -.8, .8); c.stroke() }
+        c.restore()
+      }
+      const bar = (kind: 'music' | 'effects', value: number, y: number) => {
+        glyph(kind, left + 8, y)
+        const x0 = left + 34, steps = 10, gap = 5, bw = (right - x0 - gap * (steps - 1)) / steps, on = Math.round(value * steps)
+        for (let k = 0; k < steps; k++) {
+          const x = x0 + k * (bw + gap), id = `${kind}-${k + 1}`, hot = touchHover === id
+          c.beginPath(); c.roundRect(x, y - 13, bw, 26, 6)
+          if (k < on) { const g = c.createLinearGradient(x0, 0, right, 0); g.addColorStop(0, '#ff8a7a'); g.addColorStop(.35, '#ffe29a'); g.addColorStop(.7, '#9ff0c8'); g.addColorStop(1, '#9db4ff'); c.fillStyle = g }
+          else c.fillStyle = hot ? 'rgba(236,232,224,.22)' : 'rgba(236,232,224,.1)'
+          c.fill()
+          touchButtons.push({ id, x, y: y - 16, w: bw + gap, h: 32 })
+        }
+        touchButtons.push({ id: `${kind}-0`, x: left - 10, y: y - 16, w: 36, h: 32 })
+      }
+      bar('music', st.music, X.y0 + 52)
+      bar('effects', st.effects, X.y0 + 104)
+      // Quality: two halves of one switch; the lit half is the setting.
+      const qy = X.y0 + 150, qw = (w - 60) / 2
+      ;(['balanced', 'high'] as const).forEach((q, i) => {
+        const x = left + i * qw, on = st.quality === q, hot = touchHover === `quality-${q}`
+        c.beginPath(); c.roundRect(x + 2, qy, qw - 4, 40, 12); c.fillStyle = on ? MARK : hot ? 'rgba(236,232,224,.16)' : 'rgba(236,232,224,.08)'; c.fill()
+        c.fillStyle = on ? '#101113' : MARK; c.font = font(700, 16); c.textAlign = 'center'; c.fillText(q === 'high' ? 'High' : 'Balanced', x + qw / 2, qy + 21)
+        touchButtons.push({ id: `quality-${q}`, x: x + 2, y: qy, w: qw - 4, h: 40 })
+      })
+      // Reset the keys to their defaults.
+      const ry = X.y1 - 46, hot = touchHover === 'reset-keys'
+      c.beginPath(); c.roundRect((X.x0 + X.x1) / 2 - 60, ry, 120, 32, 16); c.fillStyle = hot ? 'rgba(236,232,224,.18)' : 'rgba(236,232,224,.08)'; c.fill()
+      c.save(); c.strokeStyle = MARK; c.lineWidth = 2.2; c.lineCap = 'round'; const rx = (X.x0 + X.x1) / 2 - 30, rcy = ry + 16
+      c.beginPath(); c.arc(rx, rcy, 7, Math.PI * .3, Math.PI * 1.9); c.stroke(); c.beginPath(); c.moveTo(rx + 7, rcy - 7); c.lineTo(rx + 7, rcy - 1); c.lineTo(rx + 1, rcy - 1); c.stroke(); c.restore()
+      c.fillStyle = MARK; c.font = font(600, 14); c.textAlign = 'left'; c.fillText('Keys', rx + 16, rcy + 1)
+      touchButtons.push({ id: 'reset-keys', x: (X.x0 + X.x1) / 2 - 60, y: ry, w: 120, h: 32 })
+    }
     const paintTouchScreen = (c: CanvasRenderingContext2D) => {
       const ui = info.current.room
       const cx = (TOUCH.x0 + TOUCH.x1) / 2, cy = (TOUCH.y0 + TOUCH.y1) / 2
@@ -342,6 +387,7 @@ export function DSPreview({ game, ref, onInsertComplete, onReady, link: linkStat
       const glow = c.createRadialGradient(cx, cy, 0, cx, cy, 200)
       glow.addColorStop(0, 'rgba(236,232,224,.06)'); glow.addColorStop(1, 'rgba(236,232,224,0)')
       c.fillStyle = glow; c.fillRect(TOUCH.x0, TOUCH.y0, TOUCH.x1 - TOUCH.x0, TOUCH.y1 - TOUCH.y0)
+      if (ui?.settings) { paintSettings(c, ui.settings); c.restore(); return }
       const img = ui?.save?.bottom ? saveImage(ui.save.bottom) : null
       if (img) {
         c.imageSmoothingEnabled = false; c.globalAlpha = .92
@@ -526,6 +572,8 @@ export function DSPreview({ game, ref, onInsertComplete, onReady, link: linkStat
     const controlsDown = (e: PointerEvent) => {
       if (viewRef.current !== 'controls') return
       e.stopImmediatePropagation()
+      const id = e.button === 0 ? touchAt(e) : ''
+      if (id) { tapped.current?.(id); return }
       if (e.button === 0 && blend > .75) emitButton('pick', buttonAt(e))
     }
     element.addEventListener('pointerdown', controlsDown, { capture: true }); element.addEventListener('pointermove', controlsMove)
@@ -650,6 +698,8 @@ export function DSPreview({ game, ref, onInsertComplete, onReady, link: linkStat
         // The shift runs along the camera's own right, so the console moves sideways on screen whatever the orbit.
         sideways.set(1, 0, 0).applyAxisAngle(UP, orbit)
         position.addScaledVector(sideways, shift); target.addScaledVector(sideways, shift)
+        const lift = -shift * MENU_LIFT_PX / MENU_SHIFT_PX
+        position.addScaledVector(UP, lift); target.addScaledVector(UP, lift)
         setCamera(position, target)
       }
       if (card) card.visible = started > 0 || inserted || (blend < .35 && menuRef.current === 'open')

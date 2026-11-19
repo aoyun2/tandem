@@ -47,9 +47,9 @@ describe('Nuzlocke tracking', () => {
     expect(r.areas['120']).toMatchObject({ outcome: 'missed', source: 'manual' })
     expect(markMissed(r, 120, 6)).toBe(r)
   })
-  it('matches Souldew’s presets: Hardcore is Classic with strict caps, no battle items and Set', () => {
-    expect(PRESETS.classic).toMatchObject({ blackout: 'party', dupes: 'line', shinyClause: true, levelCaps: false, nicknames: false, typeClause: 'off' })
-    expect(PRESETS.hardcore).toEqual({ ...PRESETS.classic, levelCaps: 'strict', noBattleItems: true, setMode: true })
+  it('matches Souldew’s presets: Hardcore is Classic with strict caps, no battle items and Set, plus no scouting', () => {
+    expect(PRESETS.classic).toMatchObject({ blackout: 'party', dupes: 'line', shinyClause: true, levelCaps: false, nicknames: false, typeClause: 'off', scouting: true })
+    expect(PRESETS.hardcore).toEqual({ ...PRESETS.classic, levelCaps: 'strict', noBattleItems: true, setMode: true, scouting: false })
   })
   it('flags a catch from an evolution line already caught, in a new area', () => {
     const lines = Array.from({ length: 700 }, (_, i) => i); lines[496] = 495
@@ -82,5 +82,20 @@ describe('Nuzlocke tracking', () => {
   })
   it('keeps restrictions when a preset fills in the rules', () => {
     expect(rulesOf({ preset: 'hardcore', typeClause: 'mono', monoType: 9, noLegendaries: true })).toMatchObject({ levelCaps: 'strict', typeClause: 'mono', monoType: 9, noLegendaries: true })
+  })
+})
+
+describe('progression', () => {
+  it('steps along a boss path from the furthest place visited', async () => {
+    const { BOSSES, nextStep } = await import('../src/shared/progression')
+    const cheren = BOSSES[0]
+    expect(nextStep(cheren, () => false)).toEqual({ place: 'Route 19', done: 0 })
+    expect(nextStep(cheren, p => p === 'Floccesy Town')).toEqual({ place: 'Route 20', done: 2 })
+    expect(nextStep(cheren, () => true)).toEqual({ place: null, done: cheren.path.length })
+  })
+  it('records each place the player has been to once', () => {
+    const r1 = track(run(), { ...state([mon(1)]), where: { zone: 427, place: 117 } }, 1).run
+    const r2 = track(r1, { ...state([mon(1)]), where: { zone: 428, place: 117 } }, 2).run
+    expect(r2.visited).toEqual([117])
   })
 })
