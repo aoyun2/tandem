@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react'
 import { audio } from '../sfx'
 import { SequencePlayer } from './player'
+import { MiniSpectrum } from './MusicRing'
 import { watchSettings } from '../settings'
 
 /** Pieces from the game's soundtrack, by their names in its sound archive. */
@@ -58,7 +59,7 @@ export function NowPlaying({ token, source, game, quiet, strip = false }: { toke
       if (!track) { next(); return }
       const p = new SequencePlayer(ctx, track, out)
       player.current?.stop(fade.current)
-      player.current = p; p.onEnd = next; p.start(fade.current); setReady(true)
+      player.current = p; p.onEnd = next; p.start(fade.current, fade.current >= CROSSFADE ? 6 : 0); setReady(true)
       if (pausedRef.current) p.pause(.01)
       timer = window.setTimeout(next, PIECE_SECONDS * 1000)
     })
@@ -69,6 +70,7 @@ export function NowPlaying({ token, source, game, quiet, strip = false }: { toke
   const step = (by: number) => { fade.current = 1; setPaused(false); setIndex(i => i + by + PLAYLIST.length) }
   return <div className="now-playing" data-playing={ready && !paused} data-quiet={quiet} data-strip={strip} aria-label="Now playing">
     <button className="np-button" onClick={() => step(-1)} aria-label="Previous"><SkipBack size={16}/></button>
+    {strip && <MiniSpectrum live={ready && !paused && !quiet}/>}
     <span className="now-playing-title"><b>{piece(index).title}</b><em>Pokémon {game}</em></span>
     <button className="np-button" onClick={() => setPaused(!paused)} aria-label={paused ? 'Play music' : 'Pause music'}>{paused ? <Play size={16}/> : <Pause size={16}/>}</button>
     <button className="np-button" onClick={() => step(1)} aria-label="Next"><SkipForward size={16}/></button>

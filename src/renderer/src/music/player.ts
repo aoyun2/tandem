@@ -113,8 +113,9 @@ export class SequencePlayer {
     this.tracks = [newTrack(0)]
   }
 
-  /** Starts playing, rising from silence over `fadeIn` seconds. */
-  start(fadeIn = .3) {
+  /** Starts playing, rising from silence over `fadeIn` seconds, from the first note plus `into` seconds of the piece. */
+  start(fadeIn = .3, into = 0) {
+    this.seek(into)
     const now = this.ctx.currentTime
     this.out.gain.setValueAtTime(0, now); this.out.gain.linearRampToValueAtTime(this.target, now + Math.max(.01, fadeIn))
     this.time = now + .1
@@ -123,6 +124,15 @@ export class SequencePlayer {
   }
 
   private held = false
+  private dry = false
+  private heard = false
+  /** Runs the sequence silently past its leading silence, then `extra` seconds further (at most a minute in all). */
+  private seek(extra: number) {
+    this.dry = true; this.heard = false; this.time = 0
+    while (!this.heard && this.time < 60 && this.tracks.some(t => t && !t.done)) this.run(this.time + .05)
+    if (extra > 0) this.run(this.time + extra)
+    this.dry = false
+  }
   /** Holds the sequence where it is, fading out over `seconds`. */
   pause(seconds = .25) {
     if (this.held || this.stopped) return
@@ -236,6 +246,7 @@ export class SequencePlayer {
   }
 
   private note(t: TrackState, key: number, velocity: number, length: number) {
+    if (this.dry) { this.heard = true; return }
     const note = Math.max(0, Math.min(127, key + t.transpose))
     const r = this.region(t.program, note)
     if (!r) return
