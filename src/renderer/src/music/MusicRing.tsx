@@ -112,8 +112,10 @@ export function MiniSpectrum({ live }: { live: boolean }) {
       if (el.width !== w || el.height !== h) { el.width = w; el.height = h }
       const { level, energy } = read(live), n = level.length, k = devicePixelRatio
       c.clearRect(0, 0, w, h)
-      const g = c.createLinearGradient(0, 0, w, 0)
-      PRISM.forEach((col, i) => g.addColorStop((i / (PRISM.length - 1) + now / 20000) % 1, col))
+      // The prism in order across the strip, drifting slowly as the ring turns: two cycles, shifted by up to one.
+      const shift = (now / 24000) % 1, g = c.createLinearGradient(-shift * w, 0, (2 - shift) * w, 0)
+      const cycle = [...PRISM, ...PRISM, PRISM[0]]
+      cycle.forEach((col, i) => g.addColorStop(i / (cycle.length - 1), col))
       c.beginPath(); c.moveTo(0, h)
       for (let i = 0; i < n; i++) {
         const x = i / (n - 1) * w, y = h - (1.5 * k + level[i] * (h - 3 * k)), nx = (i + 1) / (n - 1) * w, ny = h - (1.5 * k + (level[Math.min(n - 1, i + 1)]) * (h - 3 * k))
