@@ -118,7 +118,27 @@ export class SequencePlayer {
     const now = this.ctx.currentTime
     this.out.gain.setValueAtTime(0, now); this.out.gain.linearRampToValueAtTime(this.target, now + Math.max(.01, fadeIn))
     this.time = now + .1
-    const pump = () => { if (!this.stopped) { this.run(this.ctx.currentTime + .25); this.timer = window.setTimeout(pump, 40) } }
+    const pump = () => { if (!this.stopped && !this.held) { this.run(this.ctx.currentTime + .25); this.timer = window.setTimeout(pump, 40) } }
+    pump()
+  }
+
+  private held = false
+  /** Holds the sequence where it is, fading out over `seconds`. */
+  pause(seconds = .25) {
+    if (this.held || this.stopped) return
+    this.held = true; clearTimeout(this.timer)
+    const now = this.ctx.currentTime
+    this.out.gain.cancelScheduledValues(now); this.out.gain.setValueAtTime(this.out.gain.value, now); this.out.gain.linearRampToValueAtTime(0, now + seconds)
+  }
+
+  /** Carries on from where `pause` held it, fading back in over `seconds`. */
+  resume(seconds = .25) {
+    if (!this.held || this.stopped) return
+    this.held = false
+    const now = this.ctx.currentTime
+    this.time = Math.max(this.time, now + .05)
+    this.out.gain.cancelScheduledValues(now); this.out.gain.setValueAtTime(this.out.gain.value, now); this.out.gain.linearRampToValueAtTime(this.target, now + seconds)
+    const pump = () => { if (!this.stopped && !this.held) { this.run(this.ctx.currentTime + .25); this.timer = window.setTimeout(pump, 40) } }
     pump()
   }
 

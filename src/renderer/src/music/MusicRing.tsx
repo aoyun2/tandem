@@ -2,74 +2,63 @@ import { useEffect, useRef } from 'react'
 import { musicAnalyser } from './NowPlaying'
 
 const PRISM = ['#ff8a7a', '#ffe29a', '#9ff0c8', '#9db4ff']
-const POINTS = 160
-
-type Spark = { a: number; r: number; v: number; life: number; size: number }
+const POINTS = 72
 
 /**
- * The music as a ring of light behind the console, drawn like the link cable: a white-hot core along a closed line
- * that swells with the spectrum, a pearlescent prism halo around it that turns slowly, and sparks thrown outward from
- * the loudest points. It rests as a faint glowing circle when nothing plays.
+ * The music as a radial spectrum behind the console. Each angle is a frequency band, mirrored so the lows sit at the
+ * top and bottom; it rises fast and settles slowly, neighbouring bands are smoothed into one fluid edge, and the band
+ * between the console's circle and that edge is filled with the turning prism and outlined by a thin bright line. The
+ * whole ring breathes a little with the bass. At rest it is a faint circle.
  */
 export function MusicRing({ shown }: { shown: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const el = canvas.current!, c = el.getContext('2d')!
-    const bins = new Uint8Array(128), level = new Float32Array(POINTS), sparks: Spark[] = []
-    let frame = 0, last = performance.now()
+    const bins = new Uint8Array(128), level = new Float32Array(POINTS), smooth = new Float32Array(POINTS)
+    let frame = 0, bass = 0
     const draw = (now: number) => {
       frame = requestAnimationFrame(draw)
-      const dt = Math.min(.05, (now - last) / 1000); last = now
       const size = Math.round(el.clientWidth * devicePixelRatio)
       if (!size) return
       if (el.width !== size) { el.width = el.height = size }
       const a = musicAnalyser()
       if (a && shown) a.getByteFrequencyData(bins); else bins.fill(0)
-      const r = size / 2, inner = r * .74, reach = r * .17, turn = now / 9000, k = devicePixelRatio
-      c.clearRect(0, 0, size, size)
-      // The spectrum mirrored round the circle, low notes at the top and bottom, smoothed between neighbours.
-      let loudest = 0
+      const half = POINTS / 2
       for (let i = 0; i < POINTS; i++) {
-        const half = i < POINTS / 2 ? i : POINTS - 1 - i, bin = Math.min(127, Math.floor(Math.pow(half / (POINTS / 2), 1.6) * 90) + 1)
-        const target = Math.pow(bins[bin] / 255, 1.35)
-        level[i] += (target - level[i]) * (target > level[i] ? .4 : .1)
-        loudest = Math.max(loudest, level[i])
+        const h = i < half ? i : POINTS - 1 - i, bin = Math.min(110, Math.floor(Math.pow(h / half, 1.5) * 100) + 1)
+        const target = Math.pow(bins[bin] / 255, 1.5)
+        level[i] += (target - level[i]) * (target > level[i] ? .55 : .14)
       }
-      const radius = (i: number) => {
-        const p = (i + POINTS) % POINTS, n = (i + 1 + POINTS) % POINTS, b = (i - 1 + POINTS) % POINTS
-        return inner + reach * (level[p] * .5 + (level[n] + level[b]) * .25) + Math.sin(now / 700 + i * .4) * k * .6
-      }
-      const path = () => {
-        c.beginPath()
-        for (let i = 0; i <= POINTS; i++) {
-          const t = i / POINTS * Math.PI * 2 - Math.PI / 2, rr = radius(i)
-          const x = r + Math.cos(t) * rr, y = r + Math.sin(t) * rr
-          if (i) c.lineTo(x, y); else c.moveTo(x, y)
-        }
+      // Two passes of neighbour averaging turn the bands into one fluid edge.
+      for (let pass = 0; pass < 2; pass++) for (let i = 0; i < POINTS; i++) smooth[i] = (level[(i + POINTS - 1) % POINTS] + 2 * level[i] + level[(i + 1) % POINTS]) / 4
+      level.set(smooth)
+      const low = (bins[1] + bins[2] + bins[3] + bins[4]) / 4 / 255
+      bass += (low - bass) * (low > bass ? .3 : .08)
+      const r = size / 2, k = devicePixelRatio, inner = r * .72 * (1 + bass * .025), reach = r * .24, turn = now / 12000
+      const point = (i: number) => { const t = i / POINTS * Math.PI * 2 - Math.PI / 2, rr = inner + reach * level[(i + POINTS) % POINTS]; return [r + Math.cos(t) * rr, r + Math.sin(t) * rr] }
+      const edge = () => {
+        let [px, py] = point(0), [qx, qy] = point(1)
+        c.moveTo((px + qx) / 2, (py + qy) / 2)
+        for (let i = 1; i <= POINTS; i++) { [px, py] = point(i); [qx, qy] = point(i + 1); c.quadraticCurveTo(px, py, (px + qx) / 2, (py + qy) / 2) }
         c.closePath()
       }
+      c.clearRect(0, 0, size, size)
       const prism = c.createConicGradient(turn, r, r)
       PRISM.concat(PRISM[0]).forEach((col, i) => prism.addColorStop(i / PRISM.length, col))
-      const energy = .35 + .65 * loudest
-      c.save(); c.globalCompositeOperation = 'lighter'; c.lineJoin = 'round'
-      // Halo: the prism, wide and soft.
-      path(); c.strokeStyle = prism; c.globalAlpha = .22 * energy + .06; c.lineWidth = k * 14; c.shadowColor = '#c9d6ff'; c.shadowBlur = k * 26; c.stroke()
-      // Sheath: the prism, narrower and brighter.
-      path(); c.globalAlpha = .55 * energy + .12; c.lineWidth = k * 4.5; c.shadowBlur = k * 10; c.stroke()
-      // Core: white-hot, thin.
-      path(); c.strokeStyle = '#fffaf0'; c.globalAlpha = .5 * energy + .25; c.lineWidth = k * 1.6; c.shadowColor = '#ffffff'; c.shadowBlur = k * 6; c.stroke()
-      // Sparks from the loudest points, drifting outward and fading.
-      for (let i = 0; i < POINTS; i += 4) if (level[i] > .45 && Math.random() < level[i] * .18) sparks.push({ a: i / POINTS * Math.PI * 2 - Math.PI / 2, r: radius(i), v: (40 + Math.random() * 90) * k, life: 1, size: (1 + Math.random() * 1.6) * k })
-      c.shadowBlur = k * 8
-      for (let s = sparks.length - 1; s >= 0; s--) {
-        const p = sparks[s]
-        p.r += p.v * dt; p.life -= dt * 1.6; p.a += dt * .15
-        if (p.life <= 0) { sparks.splice(s, 1); continue }
-        const x = r + Math.cos(p.a) * p.r, y = r + Math.sin(p.a) * p.r
-        c.globalAlpha = p.life * .9; c.fillStyle = PRISM[Math.floor((p.a / (Math.PI * 2) + turn) * 4 + 40) % 4]; c.shadowColor = c.fillStyle
-        c.beginPath(); c.arc(x, y, p.size * (0.6 + p.life * .6), 0, Math.PI * 2); c.fill()
-      }
-      if (sparks.length > 220) sparks.splice(0, sparks.length - 220)
+      const energy = level.reduce((s, v) => s + v, 0) / POINTS
+      c.save()
+      // The filled band, fading outward.
+      c.beginPath(); edge(); c.moveTo(r + inner, r); c.arc(r, r, inner, 0, Math.PI * 2, true)
+      c.globalAlpha = .1 + .45 * Math.min(1, energy * 2.5); c.fillStyle = prism; c.fill('evenodd')
+      const fade = c.createRadialGradient(r, r, inner, r, r, inner + reach)
+      fade.addColorStop(0, 'rgba(10,11,13,0)'); fade.addColorStop(1, 'rgba(10,11,13,.7)')
+      c.globalCompositeOperation = 'destination-out'; c.globalAlpha = .6; c.fillStyle = fade; c.fill('evenodd')
+      // The edge: a thin bright line with a soft glow.
+      c.globalCompositeOperation = 'lighter'
+      c.beginPath(); edge()
+      c.globalAlpha = .45 + .45 * Math.min(1, energy * 3); c.strokeStyle = prism; c.lineWidth = k * 2; c.shadowColor = '#d8e0ff'; c.shadowBlur = k * 10; c.stroke()
+      c.globalAlpha = .2; c.lineWidth = k * 1; c.strokeStyle = '#ffffff'; c.shadowBlur = 0
+      c.beginPath(); c.arc(r, r, inner, 0, Math.PI * 2); c.stroke()
       c.restore()
     }
     frame = requestAnimationFrame(draw)

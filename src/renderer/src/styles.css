@@ -1265,3 +1265,134 @@ button.run-objective b{font-size:16px;color:#f4efe6;white-space:nowrap}
 .quick-quality{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .quick-quality button{height:40px;border:0;border-radius:12px;background:#ffffff12;color:#f4efe6;font:700 15px 'Source Sans 3',sans-serif;cursor:pointer}
 .quick-quality button[aria-checked=true]{background:#ece8e0;color:#101113}
+/* Library: one fixed size; the hero above, the shelf at the bottom, the actions always in view. */
+.library{height:min(640px,calc(100vh - 150px))}
+.library-hero,.library[data-banner=true] .library-hero{flex:1;height:auto;min-height:0;padding-top:120px;padding-bottom:12px;align-items:center;overflow:hidden}
+.library-shelf{flex:none}
+.library-info{display:flex;flex-direction:column;gap:12px;min-width:0}
+.library-info>*{margin:0}
+.library-about{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* The save: the player full bleed on the left, then the trainer, badges, time and money. */
+.library-savecard{position:relative;display:flex;align-items:center;gap:16px;min-height:64px;padding:0 18px 0 0;overflow:hidden;border-radius:16px;background:linear-gradient(90deg,#ffffff10,#ffffff06);box-shadow:inset 0 0 0 1px #ffffff12}
+.library-savecard[data-portrait=false]{padding-left:18px}
+.library-player{align-self:stretch;width:72px;height:auto;object-fit:cover;object-position:50% 20%;image-rendering:pixelated;-webkit-mask-image:linear-gradient(90deg,#000 65%,transparent);mask-image:linear-gradient(90deg,#000 65%,transparent)}
+.library-trainer{font-size:17px;font-weight:700;color:#f4efe6}
+/* Other runs: small chips, the detail on hover. */
+.library-past{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.library-past li{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;background:#ffffff0c;color:var(--dim);font-size:12px;cursor:default}
+.library-past li[data-result=won]{color:#f2c66b}.library-past li[data-result=lost]{color:#e88a8a}.library-past li[data-result=linked]{color:var(--prism-mint)}
+.library-past b{color:#f4efe6}
+
+/* Settings: a page of tile groups. */
+.settings-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;align-items:start}
+.settings-group{display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:22px;background:linear-gradient(160deg,#1b1d21,#131417);box-shadow:inset 0 0 0 1px #ffffff10,0 18px 40px -22px #000}
+.settings-group h2{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--dim)}
+.settings-tile{display:flex;flex-direction:column;gap:10px;padding:14px;border:0;border-radius:16px;background:#ffffff07;color:#f4efe6;font:inherit;text-align:left}
+.settings-tile b{display:flex;align-items:center;gap:8px;font-size:15px}
+.settings-open{flex-direction:row;align-items:center;cursor:pointer;transition:background .15s}
+.settings-open:hover:not(:disabled){background:#ffffff12}
+.settings-open:disabled{opacity:.45;cursor:default}
+.settings-open em{margin-left:auto;font-style:normal;font-size:12.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.settings-open>svg:last-child{margin-left:auto;color:var(--dim)}
+.settings-open em+svg{margin-left:6px}
+.settings-tile .quick-bar,.settings-tile .quick-quality{width:100%}
+.quick-settings{padding-top:30px}
+
+/* Outside the main menu, now playing is a slim strip along the bottom. */
+.now-playing{position:fixed;z-index:40;transition:opacity .5s,translate .5s cubic-bezier(.2,.9,.2,1),bottom .5s cubic-bezier(.2,.9,.2,1)}
+.now-playing[data-strip=true]{bottom:14px;grid-template-columns:auto auto auto auto;grid-template-areas:"p t q n";align-items:center;column-gap:6px;padding:4px 6px;border-radius:999px;background:rgba(14,15,17,.6);backdrop-filter:blur(12px);box-shadow:inset 0 0 0 1px #ffffff10;opacity:.75}
+.now-playing[data-strip=true]:hover{opacity:1}
+.now-playing[data-strip=true] .now-playing-title{flex-direction:row;gap:8px;align-items:baseline;padding:0 6px}
+.now-playing[data-strip=true] .now-playing-title b{font-size:13px}.now-playing[data-strip=true] .now-playing-title em{font-size:11.5px}
+.now-playing[data-strip=true] .np-button{width:28px;height:28px}
+
+/* Wild Pokémon rows: what can be caught; greyed when the dupes clause rules it out. */
+.run-wild{display:flex;flex-wrap:wrap;gap:0;margin:-6px 0 -8px}
+.run-wild span[data-out=true],.boss-route-mons span[data-out=true]{filter:grayscale(1) brightness(.55);opacity:.6}
+.run-place{flex-direction:column;align-items:flex-end;gap:2px;padding:10px 14px}
+.run-place .run-wild{justify-content:flex-end}
+.run-place-catch{margin:-6px -4px -8px 0}
+/* The task card stays in place; while the goal is open it hides under it, and comes back as the goal folds. */
+button.run-objective b{display:flex;align-items:center;gap:6px}
+button.run-objective b svg{flex:none;color:var(--prism-mint)}
+button.run-objective[data-kind=go] b svg{color:#f4efe6}
+button.run-objective[data-open=true]{opacity:0;pointer-events:none;transition:opacity .15s}
+button.run-objective[data-open=false]{transition:opacity .3s .1s}
+/* The route as a track of stops. */
+.boss-route{position:relative;display:flex;flex-direction:column;gap:2px;margin:0;padding:0 0 0 4px;list-style:none}
+.boss-route li{position:relative;display:grid;grid-template-columns:16px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:34px;padding:0 6px 0 0;color:#a8a39b;font-size:13px}
+.boss-route li::before{content:'';position:absolute;left:7px;top:-10px;bottom:50%;width:2px;background:#ffffff14}
+.boss-route li:first-child::before{display:none}
+.boss-route li[data-done=true]::before,.boss-route li[data-next=true]::before{background:color-mix(in srgb,var(--type) 70%,#fff)}
+.boss-route-node{width:12px;height:12px;margin-left:1px;border-radius:50%;background:#2a2c31;box-shadow:inset 0 0 0 2px #ffffff22}
+.boss-route li[data-done=true] .boss-route-node{background:color-mix(in srgb,var(--type) 80%,#fff);box-shadow:none}
+.boss-route li[data-next=true]{color:#fff;font-weight:700}
+.boss-route li[data-next=true] .boss-route-node{background:#fff;box-shadow:0 0 0 4px #ffffff22,0 0 12px #fff8}
+.boss-route li[data-here=true] b{color:var(--prism-mint)}
+.boss-route li[data-goal=true]{font-weight:700;color:#f4efe6}
+.boss-route li[data-goal=true] .boss-route-node{border-radius:3px;transform:rotate(45deg)}
+.boss-route-mons{display:flex;margin:-6px 0 -8px}
+.boss-route li[data-done=true] .boss-route-mons{opacity:.7}
+/* A smaller goal sheet. */
+.boss-sheet{width:420px;max-height:calc(100vh - 140px);overflow-y:auto;scrollbar-width:none}
+.boss-head{min-height:88px}
+.boss-head>.boss-face{width:88px!important;height:88px!important}
+main.page-settings{display:block;padding-top:44px}.page-settings .settings-groups{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.now-playing[data-quiet=true]{opacity:0!important;pointer-events:none}
+/* The goal sheet turns only a little, so its long rows stay level. */
+.boss-sheet{transform:perspective(2200px) rotateY(-8deg)}
+.boss-sheet[data-side=left]{transform:perspective(2200px) rotateY(8deg)}
+
+/* Settings in the app's own style: glass groups, slim neutral sliders, rule-style tiles. */
+.settings-group{padding:18px 18px 16px;border-radius:24px;background:rgba(18,19,22,.74);backdrop-filter:blur(22px) saturate(1.3);box-shadow:inset 0 0 0 1px #ffffff14,inset 0 1px 0 #ffffff1c,0 30px 60px -30px #000d}
+.settings-group h2{font-size:12px;letter-spacing:.12em;gap:8px;margin-bottom:2px}
+.settings-group h2 svg{width:15px;height:15px}
+.settings-row{display:flex;align-items:center;gap:14px;min-height:46px;padding:0 6px;border:0;border-radius:14px;background:none;color:#f4efe6;font:inherit;text-align:left}
+.settings-row>b{width:64px;flex:none;font-size:14.5px;font-weight:600}
+.volume{display:flex;flex:1;align-items:center;gap:10px}
+.volume-glyph{display:grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:none;color:var(--dim);transition:color .15s,background .15s}
+.volume-glyph:hover{color:#f4efe6;background:#ffffff10}
+.volume input{flex:1;height:18px;margin:0;background:none;-webkit-appearance:none;appearance:none;cursor:pointer}
+.volume input::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,#ece8e0 calc(var(--value) * 100%),#ffffff1c 0)}
+.volume input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:#f4efe6;box-shadow:0 2px 8px #000a;transition:transform .15s}
+.volume input:hover::-webkit-slider-thumb{transform:scale(1.15)}
+.settings-open{cursor:pointer;transition:background .15s}
+.settings-open:hover:not(:disabled){background:#ffffff0c}
+.settings-open>b{width:auto;display:flex;align-items:center;gap:10px}
+.detail-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 0;padding:0;list-style:none}
+.detail-tiles button{width:100%;height:72px}
+.quick-settings{display:flex;flex-direction:column;gap:6px;width:340px;padding:26px 6px 4px}
+.quick-settings .detail-tiles button{height:60px}
+/* The goal sheet keeps its turn towards the centre, gentler than the cards so long rows still read. */
+.boss-sheet{transform:perspective(1400px) rotateY(-16deg)}
+.boss-sheet[data-side=left]{transform:perspective(1400px) rotateY(16deg)}
+.detail-tiles button{cursor:pointer}.detail-tiles button:hover{background:#ffffff10}
+
+/* Development and Settings: one glass panel of rows. */
+.roadmap-row{align-items:center}
+.roadmap-row[data-done=true] .stage-icon{color:var(--prism-mint)}
+.roadmap-track{display:flex;gap:4px;width:150px;flex:none}
+.roadmap-track u{flex:1;height:4px;border-radius:2px;background:#ffffff14;text-decoration:none}
+.roadmap-track u[data-on=true]{background:linear-gradient(90deg,var(--prism-coral),var(--prism-gold),var(--prism-mint),var(--prism-blue));background-size:400% 100%}
+.roadmap-track u:nth-child(2)[data-on=true]{background-position:33% 0}.roadmap-track u:nth-child(3)[data-on=true]{background-position:66% 0}.roadmap-track u:nth-child(4)[data-on=true]{background-position:100% 0}
+.settings-list{max-width:820px}
+.settings-line{width:100%;padding:18px 0;border:0;background:none;color:inherit;font:inherit;text-align:left}
+.settings-line .stage-icon{margin-top:0}
+.settings-line h2{width:120px;flex:none;font-size:17px}
+.settings-line .volume{max-width:420px;margin-left:auto}
+.settings-line .detail-tiles{width:320px;margin-left:auto}
+.settings-line .detail-tiles button{height:58px}
+.settings-line.settings-open{cursor:pointer}
+.settings-line.settings-open>svg:last-child{margin-left:auto;color:var(--dim)}
+.settings-line.settings-open em{margin-left:auto;font-style:normal;font-size:13px;color:var(--dim)}
+.settings-line.settings-open em+svg{margin-left:10px}
+.settings-line.settings-open:hover:not(:disabled) h2{color:#fff}
+.settings-line:disabled{opacity:.45;cursor:default}
+main.page-settings{display:block}
+main.page-settings{padding-top:44px;place-items:initial}
+.page-settings .page-heading{text-align:left}
+.settings-list{max-width:none}
+.settings-line .volume{max-width:520px}
+/* The library keeps clear of the top bar and fits the window. */
+.island[data-library=true]{top:72px}
+.library{height:min(600px,calc(100vh - 150px))}

@@ -62,11 +62,13 @@ function MonProfile({ names, mon }: { names: GameNames | null; mon: TrainerMon }
 }
 
 /**
- * The current goal, unfolded from the objective: the leaders already beaten; the story route to the next boss with
- * the places behind you lit; and, with scouting on, that boss's team in Normal mode, the types that hit most of it,
+ * The current goal, unfolded from the objective: the leaders already beaten; the story route to the next boss as a
+ * track of stops, each with what lives there or what you caught there, the places behind you lit; and, with scouting on, that boss's team in Normal mode, the types that hit most of it,
  * and the profile of the Pokémon pointed at. It moves on with each badge and each place reached.
  */
-export function BossSheet({ names, badges, caps, scouting, done, style, side = 'right', onClose }: { names: GameNames | null; badges: number; caps: boolean; scouting: boolean; done: number; style: CSSProperties; side?: 'left' | 'right'; onClose: () => void }) {
+export type Stop = { name: string; done: boolean; next: boolean; here: boolean; caught?: number; wild: number[] }
+
+export function BossSheet({ names, badges, caps, scouting, stops, ruledOut, style, side = 'right', onClose }: { names: GameNames | null; badges: number; caps: boolean; scouting: boolean; stops: Stop[]; ruledOut: (species: number) => boolean; style: CSSProperties; side?: 'left' | 'right'; onClose: () => void }) {
   const sheet = useRef<HTMLDivElement>(null)
   const close = useRef(onClose); close.current = onClose
   useEffect(() => {
@@ -95,9 +97,15 @@ export function BossSheet({ names, badges, caps, scouting, done, style, side = '
       </span>
       {caps && boss.cap !== null && <strong title="Level cap">{boss.cap}</strong>}
     </header>
-    {boss.path.length > 0 && <ol className="boss-path" aria-label="Route">
-      {boss.path.map((place, i) => <li key={i} data-done={i < done} data-next={i === done}><i/>{place}</li>)}
-      <li data-goal data-next={done >= boss.path.length}><i/>{boss.place}</li>
+    {stops.length > 1 && <ol className="boss-route" aria-label="Route">
+      {stops.map((stop, k) => <li key={k} data-done={stop.done} data-next={stop.next} data-here={stop.here} data-goal={k === stops.length - 1}>
+        <i className="boss-route-node" aria-hidden/>
+        <b>{stop.name}</b>
+        <span className="boss-route-mons">
+          {stop.caught !== undefined ? <span data-caught title={names?.species[stop.caught]}><MonIcon names={names} species={stop.caught} size={28}/></span>
+            : stop.wild.slice(0, 4).map(sp => <span key={sp} data-out={ruledOut(sp)} title={names?.species[sp]}><MonIcon names={names} species={sp} size={28}/></span>)}
+        </span>
+      </li>)}
     </ol>}
     {scouting && <>
       {!boss.members && best.length > 0 && <div className="boss-bring" key={`bring-${boss.name}`}>

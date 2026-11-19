@@ -10,9 +10,10 @@ import { forget, readLibrary, remember, stillThere } from './library'
 import { addRun, isPhoto, readProfile, readRuns, runSave, saveProfile, saveRun } from './runs'
 import { evolutionLines, gameNames, locate, narcFiles, speciesTypes } from './romtext'
 import { findSdat, readTrack } from './sdat'
-import { speciesIcons, trainerFaces } from './icons'
+import { playerPortrait, speciesIcons, trainerFaces } from './icons'
 import { BOSSES, trainersOf } from '../shared/progression'
 import { categoryIcons, trainerTeams, typeLabels } from './trainers'
+import { wildEncounters } from './encounters'
 import { checkRules, newRun, type Run } from '../shared/run'
 import type { GameNames, InspectResult, LibraryRom, NewRun, RomDetails, StartResult } from '../shared/api'
 import type { EmulatorConfig } from '../shared/emulator'
@@ -135,16 +136,29 @@ app.whenReady().then(() => {
       return { ...info, token, missing: false }
     }))
   })
+  // One archive from a ROM's file system, read from disk without loading the whole ROM.
+  const romArchive = async (path: string, name: string) => {
+    const file = await open(path, 'r')
+    try {
+      const read = async (start: number, length: number) => { const b = Buffer.alloc(length); await file.read(b, 0, length, start); return b }
+      const header = await read(0, 0x60)
+      const fnt = await read(header.readUInt32LE(0x40), header.readUInt32LE(0x44)), fat = await read(header.readUInt32LE(0x48), header.readUInt32LE(0x4c))
+      const r = locate(fnt, fat, name)
+      return r ? read(r[0], r[1] - r[0]) : null
+    } finally { await file.close() }
+  }
   // The save for a ROM, and showing its file or save in the system file manager. Paths never leave the main process.
   ipcMain.handle('rom:details', async (event, token: unknown): Promise<RomDetails | null> => {
     const rom = window && event.sender === window.webContents && typeof token === 'string' ? roms.get(token) : undefined
     if (!rom) return null
     // The save shown is the active run's when there is one on this ROM, otherwise the ROM's own.
-    const data = app.getPath('userData'), run = (await readRuns(data)).find(r => !r.endedAt && r.romSha === rom.sha256)
+    const data = app.getPath('userData'), run = (await readRuns(data)).find(r => !r.endedAt && r.mode === 'solo' && r.romSha === rom.sha256)
     const file = run ? runSave(data, run.id) : savePath(rom)
     try {
       const s = await stat(file), summary = saveSummary(new Uint8Array(await readFile(file)))
-      return { save: { size: s.size, modified: s.mtimeMs, trainer: summary ?? undefined } }
+      let portrait: string | undefined
+      if (summary) try { const faces = await romArchive(rom.path, 'a/2/9/1'); portrait = faces ? playerPortrait(faces, summary.female) ?? undefined : undefined } catch { portrait = undefined }
+      return { save: { size: s.size, modified: s.mtimeMs, trainer: summary ? { ...summary, portrait } : undefined } }
     } catch { return { save: null } }
   })
   ipcMain.handle('rom:reveal', (event, token: unknown, what: unknown) => {
@@ -188,6 +202,10 @@ app.whenReady().then(() => {
     const ui = await archive('a/0/8/2')
     try { return ui ? categoryIcons(ui) : undefined } catch { return undefined }
   }
+  const wildOf = async (archive: (path: string) => Promise<Buffer | null>) => {
+    const [zones, tables] = [await archive('a/0/1/2'), await archive('a/1/2/7')]
+    try { return zones && tables ? wildEncounters(narcFiles(zones)[0], tables) : undefined } catch { return undefined }
+  }
   const baseOf = async (archive: (path: string) => Promise<Buffer | null>) => {
     const personal = await archive('a/0/1/6')
     try { return personal ? narcFiles(personal).slice(0, 650).map(p => Array.from(p.subarray(0, 6))) : undefined } catch { return undefined }
@@ -196,7 +214,7 @@ app.whenReady().then(() => {
   ipcMain.handle('rom:names', async (event, token: unknown): Promise<GameNames | null> => {
     const rom = window && event.sender === window.webContents && typeof token === 'string' ? roms.get(token) : undefined
     if (!rom) return null
-    const cache = join(app.getPath('userData'), 'names', `${rom.sha256}-6.json`)
+    const cache = join(app.getPath('userData'), 'names', `${rom.sha256}-7.json`)
     try { return JSON.parse(await readFile(cache, 'utf8')) } catch { /* not cached yet */ }
     const file = await open(rom.path, 'r')
     try {
@@ -205,7 +223,7 @@ app.whenReady().then(() => {
       const fnt = await read(header.readUInt32LE(0x40), header.readUInt32LE(0x44)), fat = await read(header.readUInt32LE(0x48), header.readUInt32LE(0x4c))
       const archive = async (path: string) => { const r = locate(fnt, fat, path); return r ? read(r[0], r[1] - r[0]) : null }
       const text = gameNames(await archive('a/0/0/2'))
-      const names = text ? { ...text, types: speciesTypes(await archive('a/0/1/6')), lines: evolutionLines(await archive('a/0/1/9')), icons: await iconsOf(archive), faces: await facesOf(archive), teams: await teamsOf(archive), typeLabels: await labelsOf(archive), categoryIcons: await categoriesOf(archive), base: await baseOf(archive) } : null
+      const names = text ? { ...text, types: speciesTypes(await archive('a/0/1/6')), lines: evolutionLines(await archive('a/0/1/9')), icons: await iconsOf(archive), faces: await facesOf(archive), teams: await teamsOf(archive), typeLabels: await labelsOf(archive), categoryIcons: await categoriesOf(archive), base: await baseOf(archive), wild: await wildOf(archive) } : null
       if (names) { await mkdir(join(app.getPath('userData'), 'names'), { recursive: true }); await writeFile(cache, JSON.stringify(names)) }
       return names
     } catch { return null } finally { await file.close() }

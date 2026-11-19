@@ -19,9 +19,7 @@ import type { GameNames, LibraryRom, Profile, RomInfo } from '../../shared/api'
 import type { Rules, Run } from '../../shared/run'
 import { Onboarding } from './Onboarding'
 import { MainMenu } from './MainMenu'
-import { SettingsPanel } from './SettingsPanel'
-import { changeSettings, settings, watchSettings } from './settings'
-import { resetBindings } from './input/bindings'
+import { SettingsPage } from './SettingsPanel'
 import { NowPlaying } from './music/NowPlaying'
 import { MusicRing } from './music/MusicRing'
 import { installInterfaceSounds } from './sfx'
@@ -48,17 +46,6 @@ function Setup({ rom, library, libraryOpen, view, onHome, onPick, onForget, busy
   // Room flow lives on the island; the DS top screen mirrors it. Online rooms need the room service, which is not built.
   const [room,setRoom]=useState<Room>({mode:'menu'})
   const [anchors,setAnchors]=useState<ButtonAnchors|null>(null)
-  // Settings live on the console's touch screen in the controls view.
-  const [prefs,setPrefs]=useState(settings())
-  useEffect(()=>watchSettings(setPrefs),[])
-  const [keysVersion,setKeysVersion]=useState(0)
-  const controlsRoom=useMemo<RoomScreen>(()=>({settings:prefs}),[prefs])
-  const touch=(id:string)=>{
-    const [kind,value]=id.split('-')
-    if(kind==='music'||kind==='effects')changeSettings({[kind]:Number(value)/10})
-    else if(kind==='quality')changeSettings({quality:value==='high'?'high':'balanced'})
-    else if(id==='reset-keys'){resetBindings();setKeysVersion(v=>v+1)}
-  }
   const mirror=useMemo<RoomScreen>(()=>{
     const save=saveShots(run?.id??rom?.sha256)
     if(mode==='solo')return{art:rom?.game,save}
@@ -104,11 +91,10 @@ function Setup({ rom, library, libraryOpen, view, onHome, onPick, onForget, busy
     <div className={launching ? 'setup-stage launching' : 'setup-stage'} data-view={view} data-stage={stage}>
       <MusicRing shown={view==='home'&&stage==='menu'&&active}/>
       {view==='home'&&<MainMenu stage={menu} onPick={chooseMode} onSettings={onSettings}/>}
-      <NowPlaying token={(rom??library.find(r=>!r.missing))?.token} source={(rom??library.find(r=>!r.missing))?.sha256} game={(rom??library.find(r=>!r.missing))?.game} quiet={!music||launching} hidden={!active||view!=='home'||stage!=='menu'}/>
 
       <div className="scene-vignette" aria-hidden="true"/>
-      <DSPreview menu={view==='home'?menu:'open'} game={rom ? (rom.game === 'White 2' ? 'White 2' : 'Black 2') : undefined} ref={localDS} onInsertComplete={onInsertComplete} onReady={onReady} link={link} player={player} partner={partner} room={view==='controls'?controlsRoom:stage==='mode'||view!=='home'?mirror:{}} onTouch={touch} view={view} onAnchors={setAnchors}/>
-      {view === 'controls' && <ControlsOverlay key={keysVersion} anchors={anchors}/>}
+      <DSPreview menu={view==='home'?menu:'open'} game={rom ? (rom.game === 'White 2' ? 'White 2' : 'Black 2') : undefined} ref={localDS} onInsertComplete={onInsertComplete} onReady={onReady} link={link} player={player} partner={partner} room={view==='controls'?{}:stage==='mode'||view!=='home'?mirror:{}} view={view} onAnchors={setAnchors}/>
+      {view === 'controls' && <ControlsOverlay anchors={anchors}/>}
       {libraryOpen && <div className="library-backdrop" aria-hidden="true" onPointerDown={onHome}/>}
       
       <Island run={run} otherRun={otherRun} names={names} runs={runs} sheet={sheet} onSheet={setSheet} onStartRun={rules => void startRun(rules)} onBack={() => setStage('menu')} mode={mode} onMode={chooseMode} rom={rom} library={library} link={link} partner={partner} room={room} busy={busy} launching={launching} error={error}
@@ -136,8 +122,8 @@ function Development() {
     ['Unova map', Map, 1, 'Explore a 3D Unova map with locations, encounters, illuminated routes, and progress.'],
     ['Companion ghost', Ghost, 0, 'See a non-colliding friend avatar in supported areas and inspect their team.']
   ]
-  return <><div className="page-heading"><h1>Development</h1></div><ul className="roadmap-tiles">{stages.map(([name, Icon, progress, description]) =>
-    <li key={name} title={description} data-done={progress === 4}><Icon size={26} strokeWidth={1.6}/><b>{name}</b><i aria-label={`${progress} of 4`}>{[1, 2, 3, 4].map(n => <u key={n} data-on={n <= progress}/>)}</i></li>)}</ul></>
+  return <><div className="page-heading"><h1>Development</h1></div><section className="glass roadmap">{stages.map(([name, Icon, progress, description]) =>
+    <div className="roadmap-row" key={name} data-done={progress === 4}><span className="stage-icon"><Icon size={20} strokeWidth={1.7}/></span><div><h2>{name}</h2><p>{description}</p></div><i className="roadmap-track" aria-label={`${progress} of 4`}>{[1, 2, 3, 4].map(n => <u key={n} data-on={n <= progress}/>)}</i></div>)}</section></>
 }
 
 
@@ -237,14 +223,15 @@ export function App() {  const [page, setPage] = useState<Page>('setup')
 
   return <div className={ready?'app ready':'app'}>
 
-    <header className="app-bar" data-menu={onMenu}>{page!=='play'&&<nav className="tabs" aria-hidden={onMenu} aria-label="Main navigation">{([['setup',House,'Home'],['library',LayoutGrid,'Library'],['controls',Settings2,'Settings'],['development',Map,'Development']] as const).map(([id,Icon,label])=><button key={id} className="tab" aria-current={page===id?'page':undefined} onClick={()=>setPage(id)}><Icon size={16} strokeWidth={1.9}/>{label}</button>)}</nav>}{page!=='play'&&player&&<button className="profile" tabIndex={onMenu?-1:0} title="Your profile" aria-label="Your profile" onClick={()=>setRenaming(true)}><i>{profile?.photo?<img src={profile.photo} alt=""/>:player.slice(0,1).toUpperCase()}</i>{player}</button>}<a className="wordmark" href="#" onClick={event => { event.preventDefault(); exitPlay() }} aria-label="Tandem home"><TandemMark/><span>Tandem</span></a><div className="window-controls"><button aria-label="Minimize window" onClick={() => void window.tandem?.windowControl('minimize')}><Minus size={16}/></button><button aria-label="Toggle fullscreen" onClick={() => void window.tandem?.windowControl('resize')}><Copy size={14}/></button><button aria-label="Close window" onClick={() => void window.tandem?.windowControl('close')}><CloseIcon size={17}/></button></div></header>
+    <header className="app-bar" data-menu={onMenu}>{page!=='play'&&<nav className="tabs" aria-hidden={onMenu} aria-label="Main navigation">{([['setup',House,'Home'],['library',LayoutGrid,'Library'],['settings',Settings2,'Settings'],['development',Map,'Development']] as const).map(([id,Icon,label])=><button key={id} className="tab" aria-current={page===id?'page':undefined} onClick={()=>setPage(id)}><Icon size={16} strokeWidth={1.9}/>{label}</button>)}</nav>}{page!=='play'&&player&&<button className="profile" tabIndex={onMenu?-1:0} title="Your profile" aria-label="Your profile" onClick={()=>setRenaming(true)}><i>{profile?.photo?<img src={profile.photo} alt=""/>:player.slice(0,1).toUpperCase()}</i>{player}</button>}<a className="wordmark" href="#" onClick={event => { event.preventDefault(); exitPlay() }} aria-label="Tandem home"><TandemMark/><span>Tandem</span></a><div className="window-controls"><button aria-label="Minimize window" onClick={() => void window.tandem?.windowControl('minimize')}><Minus size={16}/></button><button aria-label="Toggle fullscreen" onClick={() => void window.tandem?.windowControl('resize')}><Copy size={14}/></button><button aria-label="Close window" onClick={() => void window.tandem?.windowControl('close')}><CloseIcon size={17}/></button></div></header>
 
     <div className={`workspace ${page==='play'?'play-mode':''}`}>
 
       <div className="page-deck">
-      <main hidden={!shown('setup')&&!shown('library')&&!shown('controls')} data-active={page==='setup'||page==='library'||page==='controls'} className="page-setup"><Setup active={page==='setup'||page==='library'} libraryOpen={page==='library'} view={page==='library'?'library':page==='controls'?'controls':'home'} onHome={()=>setPage('setup')} onPick={pick} onForget={forgetRom} rom={rom} library={library} busy={busy} error={error} onAdd={inspect} onLibrary={()=>setPage('library')} onInsertComplete={enterPlay} onLaunch={launch} onCancel={stopSession} onReady={()=>setReady(true)} player={player} onPartner={setPartnerName} mode={mode} onMode={setMode} run={runHere} otherRun={otherRun} names={names} runs={runs} onStartRun={startRun} onSettings={()=>setPage('controls')} stage={stage} setStage={setStage} music={page!=='play'}/></main>
-      <main hidden={!shown('settings')} data-active={page==='settings'} className="page-settings"><div className="settings-page"><SettingsPanel/><button className="island-chip" onClick={()=>setPage('controls')}><Gamepad2 size={15}/>Controller</button></div></main>
+      <main hidden={!shown('setup')&&!shown('library')&&!shown('controls')} data-active={page==='setup'||page==='library'||page==='controls'} className="page-setup"><Setup active={page==='setup'||page==='library'} libraryOpen={page==='library'} view={page==='library'?'library':page==='controls'?'controls':'home'} onHome={()=>setPage('setup')} onPick={pick} onForget={forgetRom} rom={rom} library={library} busy={busy} error={error} onAdd={inspect} onLibrary={()=>setPage('library')} onInsertComplete={enterPlay} onLaunch={launch} onCancel={stopSession} onReady={()=>setReady(true)} player={player} onPartner={setPartnerName} mode={mode} onMode={setMode} run={runHere} otherRun={otherRun} names={names} runs={runs} onStartRun={startRun} onSettings={()=>setPage('settings')} stage={stage} setStage={setStage} music={page!=='play'}/></main>
+      <main hidden={!shown('settings')} data-active={page==='settings'} className="page-settings"><SettingsPage onControls={()=>setPage('controls')}/></main>
       <main hidden={!shown('development')} data-active={page==='development'} className="page-development"><Development/></main>
+      <NowPlaying token={(rom??library.find(r=>!r.missing))?.token} source={(rom??library.find(r=>!r.missing))?.sha256} game={(rom??library.find(r=>!r.missing))?.game} quiet={page==='play'||!!session} strip={!onMenu}/>
       {page==='play'&&<main className="page-play"><PlayView session={session} onExit={exitPlay} player={player} partner={mode==='solo'?null:partnerName} romSha={rom?.sha256} solo={mode==='solo'} run={runs.find(r=>r.id===playing)??null} names={names} onRun={updateRun}/></main>}
       </div>
       <div className="notification-region" role="status" aria-live="polite"/>

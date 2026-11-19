@@ -85,17 +85,29 @@ export function trainerFaces(textArchive: Uint8Array, trainerArchive: Uint8Array
   for (const name of wanted) {
     const index = names.indexOf(name), record = trainers[index]
     if (index < 0 || !record || record.length < 2) continue
-    const ncgr = faces[record[1] * 2], nclr = faces[record[1] * 2 + 1]
-    if (!ncgr || !nclr || String.fromCharCode(...ncgr.subarray(0, 4)) !== 'RGCN') continue
-    const { tiles: t, width } = tiles(ncgr), colours = palette(nclr), rgba = new Uint8Array(32 * 32 * 4)
-    if (width < 4) continue
-    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
-      const v = t[(y >> 3) * width + width - 4 + (x >> 3)]?.[(y & 7) * 8 + (x & 7)]
-      if (!v) continue
-      const c = colours[v], p = (y * 32 + x) * 4
-      rgba[p] = c[0]; rgba[p + 1] = c[1]; rgba[p + 2] = c[2]; rgba[p + 3] = 255
-    }
-    out[name] = 'data:image/png;base64,' + png(32, 32, rgba).toString('base64')
+    const face = classPortrait(faces, record[1])
+    if (face) out[name] = face
   }
   return out
+}
+
+/** A trainer class's 32×32 head from a/2/9/1 (decompressed files), as a PNG data URL, or null when it has none. */
+export function classPortrait(faces: Uint8Array[], cls: number) {
+  const ncgr = faces[cls * 2], nclr = faces[cls * 2 + 1]
+  if (!ncgr || !nclr || String.fromCharCode(...ncgr.subarray(0, 4)) !== 'RGCN') return null
+  const { tiles: t, width } = tiles(ncgr), colours = palette(nclr), rgba = new Uint8Array(32 * 32 * 4)
+  if (width < 4) return null
+  let any = false
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+    const v = t[(y >> 3) * width + width - 4 + (x >> 3)]?.[(y & 7) * 8 + (x & 7)]
+    if (!v) continue
+    const c = colours[v], p = (y * 32 + x) * 4
+    rgba[p] = c[0]; rgba[p + 1] = c[1]; rgba[p + 2] = c[2]; rgba[p + 3] = 255; any = true
+  }
+  return any ? 'data:image/png;base64,' + png(32, 32, rgba).toString('base64') : null
+}
+
+/** The player's portrait for a save: trainer class 0 (Nate) or 1 (Rosa) by the save's gender byte. */
+export function playerPortrait(faceArchive: Uint8Array, female: boolean) {
+  return classPortrait(narcFiles(faceArchive).map(f => f[0] === 0x10 || f[0] === 0x11 ? lz(f) : f), female ? 1 : 0)
 }

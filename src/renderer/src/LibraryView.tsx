@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { ArrowDownToLine, Award, CalendarClock, Check, CircleDot, Clock, Flag, FolderOpen, Gamepad2, HardDrive, Plus, Save, Skull, Trash2, Trophy, UserRound } from 'lucide-react'
+import { ArrowDownToLine, Award, CalendarClock, Check, CircleDot, Clock, Flag, FolderOpen, Gamepad2, HardDrive, Link2, Plus, Save, Skull, Trash2, Trophy, UserRound } from 'lucide-react'
 import type { Run } from '../../shared/run'
 import type { LibraryRom, RomDetails, RomInfo } from '../../shared/api'
 import { confirmSound, play as playSound } from './sfx'
@@ -143,9 +143,10 @@ export function LibraryView({ library, current, busy, error, onPlay, onAdd, onFo
             {f.language} · Rev {f.revision}{f.missing ? ' · missing' : ''}
           </button>)}
         </div>}
-        {details?.save?.trainer && <div className="library-savecard" aria-label="Save">
-          <span className="library-trainer"><UserRound size={16}/>{details.save.trainer.name}</span>
-          <span className="run-badges" aria-label={`${details.save.trainer.badges} badges`}>{Array.from({ length: 8 }, (_, i) => <i key={i} data-on={i < details.save!.trainer!.badges}/>)}</span>
+        {details?.save?.trainer && <div className="library-savecard" aria-label="Save" data-portrait={!!details.save.trainer.portrait}>
+          {details.save.trainer.portrait && <img className="library-player" src={details.save.trainer.portrait} alt=""/>}
+          <span className="library-trainer">{details.save.trainer.name}</span>
+          <span className="run-badges" title={`${details.save.trainer.badges} badges`}>{Array.from({ length: 8 }, (_, i) => <i key={i} data-on={i < details.save!.trainer!.badges}/>)}</span>
           <span title="Time played in the game"><Gamepad2 size={15}/>{details.save.trainer.played.hours}:{String(details.save.trainer.played.minutes).padStart(2, '0')}</span>
           <span title="Money">₽{details.save.trainer.money.toLocaleString()}</span>
         </div>}
@@ -155,19 +156,11 @@ export function LibraryView({ library, current, busy, error, onPlay, onAdd, onFo
           <span title={`${chosen.language} · Revision ${chosen.revision}`}><HardDrive size={15}/>{megabytes(chosen.size)}</span>
         </div>}
         {(() => {
-          const mine = runs.filter(r => !r.endedAt && files.some(f => f.sha256 === r.romSha))
-          return mine.length > 0 && <ol className="library-runs" aria-label="Runs">{mine.map(r => {
-            const caught = Object.keys(r.pokemon).length, fallen = Object.values(r.pokemon).filter(p => p.status === 'dead').length
-            const Result = r.result === 'won' ? Trophy : r.result === 'lost' ? Skull : r.result === 'abandoned' ? Flag : CircleDot
-            return <li key={r.id} data-result={r.result ?? 'active'} title={new Date(r.createdAt).toLocaleDateString()}>
-              <img src={art(r.game)} alt=""/>
-              <span className="library-run-who"><Result size={14}/>{r.trainer?.name ?? '—'}</span>
-              <span className="library-run-stats">
-                <span title="Badges" data-on={r.badges > 0}><Award size={14}/>{r.badges}</span>
-                <span title="Caught"><CircleDot size={14}/>{caught}</span>
-                {fallen > 0 && <span title="Fallen" data-tone="dead"><Skull size={14}/>{fallen}</span>}
-                {!!r.playTime && <span title="Played"><Clock size={14}/>{duration(r.playTime)}</span>}
-              </span>
+          const past = runs.filter(r => (r.endedAt || r.mode === 'soul-link') && files.some(f => f.sha256 === r.romSha)).slice(0, 12)
+          return past.length > 0 && <ol className="library-past" aria-label="Other runs">{past.map(r => {
+            const Result = r.mode === 'soul-link' && !r.endedAt ? Link2 : r.result === 'won' ? Trophy : r.result === 'lost' ? Skull : Flag
+            return <li key={r.id} data-result={r.endedAt ? r.result : 'linked'} title={`${r.mode === 'soul-link' ? `With ${r.partner ?? 'a partner'} · ` : ''}${r.trainer?.name ?? ''} · ${r.badges} badges · ${new Date(r.createdAt).toLocaleDateString()}`}>
+              <Result size={13}/><b>{r.badges}</b>
             </li>
           })}</ol>
         })()}

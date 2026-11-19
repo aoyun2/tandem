@@ -89,7 +89,10 @@ export function ControlsOverlay({ anchors }: { anchors: ButtonAnchors | null }) 
   const keyFor = (button: DSButton) => Object.keys(keys).find(code => keys[code] === button)
   const labels = anchors ? callouts(anchors.points, (anchors.left + anchors.right) / 2, anchors.height) : []
   return <div className="controls-overlay" data-ready={!!anchors}>
-    {padName && <header className="controls-header"><span className="pad-state" data-connected>{padName}</span></header>}
+    <header className="controls-header">
+      {padName && <span className="pad-state" data-connected>{padName}</span>}
+      <button className="island-chip reset-bindings" disabled={isDefault(keys, pad)} onClick={() => { const next = resetBindings(); setKeys(next.keys); setPad(next.pad); setCapture('') }} title="Every key and button back to its default"><RotateCcw size={14} strokeWidth={1.75}/>Reset</button>
+    </header>
     {anchors && <svg className="callout-lines" width={anchors.width} height={anchors.height} aria-hidden="true">
       {labels.map(c => {
         const x = c.side < 0 ? anchors.left - GUTTER : anchors.right + GUTTER, elbow = c.side < 0 ? anchors.left - GUTTER / 3 : anchors.right + GUTTER / 3

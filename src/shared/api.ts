@@ -14,7 +14,7 @@ export type RomInfo = {
 export type LibraryRom = RomInfo & { missing: boolean }
 
 /** What Tandem holds for a ROM besides the file: its cartridge save, if one has been written. */
-export type RomDetails = { save: { size: number; modified: number; trainer?: { name: string; id: number; played: { hours: number; minutes: number }; badges: number; money: number } } | null }
+export type RomDetails = { save: { size: number; modified: number; trainer?: { name: string; id: number; female?: boolean; portrait?: string; played: { hours: number; minutes: number }; badges: number; money: number } } | null }
 
 export type InspectResult =
   | { status: 'ok'; rom: RomInfo }
@@ -25,8 +25,9 @@ export type InspectResult =
 export type Profile = { name: string; region: string; set: boolean; photo?: string }
 
 /** Read from the ROM: species and place names, each species' two types, its evolution line (lowest species in it), its party icon and base stats (HP, Attack, Defense, Speed, Sp. Atk, Sp. Def), the games' type labels and move
- * category icons, and the bosses' portraits and teams by trainer name; images are PNG data URLs. */
-export type GameNames = { species: string[]; places: string[]; types: [number, number][]; lines: number[]; icons?: string[]; typeLabels?: string[]; categoryIcons?: string[]; base?: number[][]; faces?: Record<string, string>; teams?: Record<string, TrainerMon[]> }
+ * category icons, the wild Pokémon of each place by place-name index ([species, method, lowest, highest level]; method 0
+ * grass, 1 dark grass, 2 rustling grass, 3 surfing, 4 rippling water, 5 fishing, 6 rippling fishing), and the bosses' portraits and teams by trainer name; images are PNG data URLs. */
+export type GameNames = { species: string[]; places: string[]; types: [number, number][]; lines: number[]; icons?: string[]; typeLabels?: string[]; categoryIcons?: string[]; base?: number[][]; wild?: Record<string, [number, number, number, number][]>; faces?: Record<string, string>; teams?: Record<string, TrainerMon[]> }
 
 /** One Pokémon on a trainer's team, as the ROM sets it. */
 export type TrainerMon = { species: number; level: number; iv?: number; item?: string; moves: { name: string; type: number; category?: number; power?: number; accuracy?: number; pp?: number }[] }

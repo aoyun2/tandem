@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Gauge, Music2, RotateCcw, Sparkles, Volume2 } from 'lucide-react'
+import { ChevronRight, Gamepad2, Gauge, Keyboard, Music2, RotateCcw, Sparkles, Volume2 } from 'lucide-react'
 import { changeSettings, settings, watchSettings, type Settings } from './settings'
 import { bindKey, keyLabel, loadKeys, resetBindings } from './input/bindings'
 import { BUTTONS } from './input/buttons'
@@ -55,19 +55,60 @@ export function SettingsPanel() {
   </div>
 }
 
-/** Settings during play, drawn like the console's touch screen: a ten-step bar for each volume and the quality switch. */
+/** A volume as a slim slider; the glyph mutes it. */
+function StepBar({ value, icon: Icon, label, onChange }: { value: number; icon: typeof Music2; label: string; onChange: (v: number) => void }) {
+  return <div className="volume" style={{ '--value': value } as React.CSSProperties}>
+    <button type="button" className="volume-glyph" onClick={() => onChange(value ? 0 : .6)} aria-label={value ? `Mute ${label.toLowerCase()}` : `Unmute ${label.toLowerCase()}`} title={value ? 'Mute' : 'Unmute'}><Icon size={16}/></button>
+    <input type="range" min={0} max={1} step={.05} value={value} onChange={e => onChange(Number(e.target.value))} aria-label={label} title={`${Math.round(value * 100)}%`}/>
+  </div>
+}
+
+/** Standard or Sharp: how many pixels the 3D scenes draw each frame, as two tiles. */
+function Detail({ quality }: { quality: Settings['quality'] }) {
+  return <ul className="rule-tiles detail-tiles" role="radiogroup" aria-label="Detail">
+    <li data-on={quality === 'balanced'} title="Up to 2.2 million pixels a frame: smoother on laptops and integrated graphics">
+      <button type="button" role="radio" aria-checked={quality === 'balanced'} onClick={() => changeSettings({ quality: 'balanced' })}><Gauge size={18}/><b>Standard</b></button>
+    </li>
+    <li data-on={quality === 'high'} title="Up to 4 million pixels a frame: sharper on large and high-density screens">
+      <button type="button" role="radio" aria-checked={quality === 'high'} onClick={() => changeSettings({ quality: 'high' })}><Sparkles size={18}/><b>Sharp</b></button>
+    </li>
+  </ul>
+}
+
+/** Settings during play: the two volumes and the detail, in the console's own style. */
 export function QuickSettings() {
   const [s, setS] = useState(settings())
   useEffect(() => watchSettings(setS), [])
-  const bar = (kind: 'music' | 'effects', Icon: typeof Music2) => <div className="quick-bar" role="slider" aria-label={kind === 'music' ? 'Music' : 'Effects'} aria-valuemin={0} aria-valuemax={10} aria-valuenow={Math.round(s[kind] * 10)}>
-    <button type="button" className="quick-glyph" onClick={() => changeSettings({ [kind]: 0 })} aria-label="Mute"><Icon size={17}/></button>
-    {Array.from({ length: 10 }, (_, k) => <button type="button" key={k} data-on={k < Math.round(s[kind] * 10)} onClick={() => changeSettings({ [kind]: (k + 1) / 10 })} aria-label={`${(k + 1) * 10}%`}/>)}
-  </div>
   return <div className="quick-settings">
-    {bar('music', Music2)}
-    {bar('effects', Volume2)}
-    <div className="quick-quality" role="radiogroup" aria-label="Quality">
-      {(['balanced', 'high'] as const).map(q => <button type="button" key={q} role="radio" aria-checked={s.quality === q} onClick={() => changeSettings({ quality: q })}>{q === 'high' ? 'High' : 'Balanced'}</button>)}
-    </div>
+    <StepBar value={s.music} icon={Music2} label="Music" onChange={v => changeSettings({ music: v })}/>
+    <StepBar value={s.effects} icon={Volume2} label="Effects" onChange={v => changeSettings({ effects: v })}/>
+    <Detail quality={s.quality}/>
   </div>
+}
+
+/**
+ * The Settings page as one panel of rows, each with a short fact on hover: music and effects volume; how many pixels
+ * the 3D scenes draw each frame; and the keyboard and the controller, which open the console's controls view to bind
+ * them.
+ */
+export function SettingsPage({ onControls }: { onControls: () => void }) {
+  const [s, setS] = useState(settings())
+  useEffect(() => watchSettings(setS), [])
+  const padNow = () => [...(navigator.getGamepads?.() ?? [])].find(Boolean)?.id ?? ''
+  const [pad, setPad] = useState(padNow)
+  useEffect(() => {
+    const update = () => setPad(padNow())
+    window.addEventListener('gamepadconnected', update); window.addEventListener('gamepaddisconnected', update)
+    return () => { window.removeEventListener('gamepadconnected', update); window.removeEventListener('gamepaddisconnected', update) }
+  }, [])
+  return <>
+    <div className="page-heading"><h1>Settings</h1></div>
+    <section className="glass roadmap settings-list">
+      <div className="roadmap-row settings-line" title="The menu music, from your game's soundtrack"><span className="stage-icon"><Music2 size={20} strokeWidth={1.7}/></span><h2>Music</h2><StepBar value={s.music} icon={Music2} label="Music" onChange={v => changeSettings({ music: v })}/></div>
+      <div className="roadmap-row settings-line" title="Interface sounds: hovers, clicks and confirmations"><span className="stage-icon"><Volume2 size={20} strokeWidth={1.7}/></span><h2>Effects</h2><StepBar value={s.effects} icon={Volume2} label="Effects" onChange={v => changeSettings({ effects: v })}/></div>
+      <div className="roadmap-row settings-line" title="How sharply the 3D scenes are drawn"><span className="stage-icon"><Gauge size={20} strokeWidth={1.7}/></span><h2>Detail</h2><Detail quality={s.quality}/></div>
+      <button type="button" className="roadmap-row settings-line settings-open" onClick={onControls} title="Bind each DS button to a key"><span className="stage-icon"><Keyboard size={20} strokeWidth={1.7}/></span><h2>Keyboard</h2><ChevronRight size={18}/></button>
+      <button type="button" className="roadmap-row settings-line settings-open" onClick={onControls} disabled={!pad} title={pad || 'Connect a controller to bind its buttons'}><span className="stage-icon"><Gamepad2 size={20} strokeWidth={1.7}/></span><h2>Controller</h2>{pad ? <em>{pad.replace(/\s*\(.*\)$/, '')}</em> : null}<ChevronRight size={18}/></button>
+    </section>
+  </>
 }

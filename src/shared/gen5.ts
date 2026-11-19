@@ -135,7 +135,7 @@ export function saveSummary(save: Uint8Array) {
   const name = text(save, SAVE.trainer + 4, 8)
   if (save.length < SAVE.misc + 8 || !name) return null
   return {
-    name, id: u16(save, SAVE.trainer + 0x14),
+    name, id: u16(save, SAVE.trainer + 0x14), female: save[SAVE.trainer + 0x21] === 1,
     played: { hours: u16(save, SAVE.trainer + 0x24), minutes: save[SAVE.trainer + 0x26] },
     badges: badgeCount(save[SAVE.misc + 4]), money: u32(save, SAVE.misc)
   }

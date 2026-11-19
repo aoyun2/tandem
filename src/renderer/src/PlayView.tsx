@@ -7,7 +7,7 @@ import { keepSaveShot } from './LibraryView'
 import { RunMoments, RunScene } from './RunView'
 import { QuickSettings } from './SettingsPanel'
 import type { GameState } from '../../shared/run'
-import { track, type Run } from '../../shared/run'
+import { newRun, rulesOf, track, type Run } from '../../shared/run'
 import type { GameNames } from '../../shared/api'
 
 const HUD_IDLE_MS = 2600
@@ -25,6 +25,18 @@ function storedVolume() { try { const v = localStorage.getItem('volume'); return
 
 export function PlayView({ session: emulator, onExit, player, partner, romSha, solo = false, run, names, onRun }: { session: EmulatorSession | null; onExit: () => void; player: string; partner: string | null; romSha?: string; solo?: boolean; run?: Run | null; names?: GameNames | null; onRun?: (run: Run) => void }) {
   const runRef = useRef(run ?? null); runRef.current = run ?? null
+  // Without a run (Soul Link before a session, or the ROM's own save), the cockpit still follows the game with a run
+  // kept only in memory for this sitting; it is never saved.
+  const [loose, setLoose] = useState<Run | null>(null)
+  // With a controller connected, the keyboard strip under the screens is not shown.
+  const padNow = () => [...(navigator.getGamepads?.() ?? [])].some(p => p && (p.mapping === 'standard' || p.buttons.length >= 12))
+  const [pad, setPad] = useState(padNow)
+  useEffect(() => {
+    const update = () => setPad(padNow())
+    window.addEventListener('gamepadconnected', update); window.addEventListener('gamepaddisconnected', update)
+    return () => { window.removeEventListener('gamepadconnected', update); window.removeEventListener('gamepaddisconnected', update) }
+  }, [])
+  const looseRef = useRef<Run | null>(null)
   const runTo = useRef(onRun); runTo.current = onRun
   const namesRef = useRef(names); namesRef.current = names
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -84,9 +96,15 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
         game: state => {
           root.dataset.trainer = state.trainer?.name ?? ''
           setGame(state)
+          const data = { types: namesRef.current?.types, lines: namesRef.current?.lines }
           const current = runRef.current
-          if (!current) return
-          const next = track(current, state, Date.now(), { types: namesRef.current?.types, lines: namesRef.current?.lines })
+          if (!current) {
+            looseRef.current ??= newRun({ id: 'this-sitting', mode: solo ? 'solo' : 'soul-link', romSha: romSha ?? '', game: 'Black 2', rules: rulesOf({ preset: 'classic' }), createdAt: Date.now() })
+            const next = track(looseRef.current, state, Date.now(), data)
+            looseRef.current = next.run; setLoose(next.run)
+            return
+          }
+          const next = track(current, state, Date.now(), data)
           if (next.run !== current) { runRef.current = next.run; runTo.current?.(next.run) }
         }
       }, (x, y) => deck.touchPoint(x, y))
@@ -123,10 +141,10 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
     {layout.stations && player && <span className="pair-tag" data-player="local" style={{ left: layout.stations.local.left, top: layout.stations.local.top - (focus === 'local' ? 30 : 26) }}>{player}</span>}
     {layout.stations?.partner && partner && <span className="pair-tag" data-player="partner" style={{ left: layout.stations.partner.left, top: layout.stations.partner.top - (focus === 'partner' ? 30 : 26) }}>{partner}{focus === 'partner' && <em> · spectating</em>}</span>}
     {side && <button className="hud-button spectate" data-visible={hud || focus === 'partner'} style={{ left: side.right + 10, top: side.top - 4 }} onClick={() => setFocus(focus === 'local' ? 'partner' : 'local')} aria-pressed={focus === 'partner'} aria-label={focus === 'local' ? 'Spectate partner' : 'Back to your view'} title={focus === 'local' ? 'Spectate' : 'Your view'}><Eye size={16} strokeWidth={1.75}/></button>}
-    {ready && emulator && layout.stations && <div className="key-strip-anchor" data-hidden={focus !== 'local'} style={{ left: layout.stations.local.x + layout.stations.local.width / 2, top: layout.stations.local.bottom }}><KeyGuide/></div>}
+    {ready && emulator && layout.stations && !pad && <div className="key-strip-anchor" data-hidden={focus !== 'local'} style={{ left: layout.stations.local.x + layout.stations.local.width / 2, top: layout.stations.local.bottom }}><KeyGuide/></div>}
     {error && <p className="play-error" role="alert">{error}</p>}
-    {run && <RunMoments events={run.events} names={names ?? null}/>}
-    {run && ready && game?.trainer?.name && layout.front && focus === 'local' && <RunScene run={run} game={game} names={names ?? null} front={layout.front} partner={layout.partner}/>}
+    {(run ?? loose) && <RunMoments events={(run ?? loose)!.events} names={names ?? null}/>}
+    {(run ?? loose) && ready && game?.trainer?.name && layout.front && focus === 'local' && <RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={layout.front} partner={layout.partner}/>}
     {settingsOpen && <div className="cockpit-settings" role="dialog" aria-label="Settings">
       <button className="hud-button cockpit-settings-close" onClick={() => setSettingsOpen(false)} aria-label="Close"><X size={16}/></button>
       <QuickSettings/>
