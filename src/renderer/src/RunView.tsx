@@ -69,14 +69,14 @@ function WildRow({ run, names, species, size = 28, max = 6 }: { run: Run; names:
  * unfolds into its team and each Pokémon's profile and folds back into this card.
  */
 export function RunScene({ run, game, names, front, partner = null }: { run: Run; game: GameState | null; names: GameNames | null; front: DOMRect; partner?: DOMRect | null }) {
-  // Placement. Solo: the column on the left of your screens, the task on the right. Soul Link: the task sits under the
-  // partner's screens; the column stays left of yours when there is room, otherwise it goes under the task.
+  // Placement: the column on the left of your screens, the guide on their right; in Soul Link the guide sits under the
+  // partner's screens and unfolds sideways there into a wide two-column panel.
   const room = front.left - 30, columnWidth = Math.min(190, Math.max(150, room))
   const columnFits = room >= 150
-  const cardAt: CSSProperties = partner ? { left: partner.left, top: partner.bottom + 12, width: Math.max(250, partner.width) } : { left: front.right + 18, top: front.top + 8 }
-  const sheetTop = partner ? Math.max(56, Math.min(partner.top, innerHeight - 560)) : front.top + 8
-  const sheetAt: CSSProperties = partner ? { left: Math.min(partner.left, innerWidth - 440), top: sheetTop, maxHeight: innerHeight - sheetTop - 20 } : { left: front.right + 18, top: sheetTop, maxHeight: innerHeight - sheetTop - 20 }
-  const columnAt: CSSProperties = columnFits || !partner ? { left: Math.max(12, front.left - 18 - columnWidth), width: columnWidth, top: front.top + 8 } : { left: partner.left, width: Math.max(250, partner.width), top: partner.bottom + 100 }
+  const cardAt: CSSProperties = partner ? { left: partner.left, top: partner.bottom + 18, width: partner.width } : { left: front.right + 18, top: front.top + 8 }
+  const wideLeft = Math.max(front.right + 18, innerWidth - 800), wideTop = partner ? Math.max(60, Math.min(partner.bottom + 18, innerHeight - 470)) : 0
+  const sheetAt: CSSProperties = partner ? { left: wideLeft, top: wideTop, width: Math.min(760, innerWidth - wideLeft - 24), maxHeight: innerHeight - wideTop - 20 } : { left: front.right + 18, top: front.top + 8, maxHeight: innerHeight - front.top - 28 }
+  const columnAt: CSSProperties = { left: Math.max(12, front.left - 18 - columnWidth), width: columnWidth, top: front.top + 8 }
   const party = (game?.party ?? []).filter(p => !p.egg)
   const fallen = Object.values(run.pokemon).filter(p => p.status === 'dead')
   const boss = nextBoss(run.badges)
@@ -95,7 +95,7 @@ export function RunScene({ run, game, names, front, partner = null }: { run: Run
   const tint = (species: number) => TYPE_COLORS[names?.types?.[species]?.[0] ?? 0]
   const scouting = run.rules.scouting !== false
   const bring = scouting ? bestAttackers(trainersOf(boss).flatMap(name => names?.teams?.[name] ?? []).map(m => [...new Set(names?.types?.[m.species] ?? [])]), 3) : []
-  const card = <button className="run-objective run-guide" data-open={open} onClick={() => setOpen(true)} aria-label={boss.name}
+  const card = <button className="run-objective run-guide" data-under={!!partner} data-open={open} onClick={() => setOpen(true)} aria-label={boss.name}
     style={{ ...cardAt, '--type': boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b' } as CSSProperties}>
     <BossFace names={names} boss={boss} size={68}/>
     <span>
@@ -111,9 +111,9 @@ export function RunScene({ run, game, names, front, partner = null }: { run: Run
   stops.slice(0, -1).forEach((stop, k) => { if (!stop.done && !stop.here && k >= step.done) upcoming.push({ key: stop.name, kind: 'go', name: stop.name, species: stop.wild }) })
   upcoming.push({ key: 'boss', kind: 'boss', name: boss.place, species: [] })
   const sheet = open && <BossSheet names={names} badges={run.badges} caps={!!run.rules.levelCaps} scouting={run.rules.scouting !== false} stops={stops} ruledOut={sp => ruledOut(run, names, sp)}
-    style={sheetAt} side="right" onClose={() => setOpen(false)}/>
+    style={sheetAt} side="right" wide={!!partner} onClose={() => setOpen(false)}/>
   return <>
-    <div className="run-left" data-under={!columnFits && !!partner} style={columnAt}>
+    <div className="run-left" style={columnAt}>
     {here > 0 && <div className="run-place" key={here} role="status" data-caught={!!area}>
       <b>{placeName(names, here)}</b>
       {area?.species !== undefined && <span className="run-place-catch" title={speciesName(names, area.species)}><MonIcon names={names} species={area.species} size={36} fainted={area.pid !== undefined && run.pokemon[String(area.pid)]?.status === 'dead'}/></span>}

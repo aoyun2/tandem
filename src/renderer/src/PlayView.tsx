@@ -28,6 +28,8 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
   // Without a run (Soul Link before a session, or the ROM's own save), the cockpit still follows the game with a run
   // kept only in memory for this sitting; it is never saved.
   const [loose, setLoose] = useState<Run | null>(null)
+  // The run keeps the places it has in your own view; while you spectate it stays there, dimmed.
+  const home = useRef<{ front: DOMRect | null; partner: DOMRect | null }>({ front: null, partner: null })
   // With a controller connected, the keyboard strip under the screens is not shown.
   const padNow = () => [...(navigator.getGamepads?.() ?? [])].some(p => p && (p.mapping === 'standard' || p.buttons.length >= 12))
   const [pad, setPad] = useState(padNow)
@@ -78,6 +80,8 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
       emulator.attach(host, {
         frame: (width, height, pixels) => {
           deck.setFrame('local', width, height, pixels)
+          // A test may mirror your screens onto a simulated partner's; the app never sets it.
+          if ((globalThis as { __tandemMirrorPartner?: boolean }).__tandemMirrorPartner && !solo) deck.setFrame('partner', width, height, pixels)
           latest = { width, height, pixels }
         },
         status: status => {
@@ -93,8 +97,20 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
           if (status.audio) root.dataset.audio = status.audio
         },
         // Each reading of the game moves the run on; what happened shows as moments.
-        game: state => {
-          root.dataset.trainer = state.trainer?.name ?? ''
+        game: state => { if (!(globalThis as { __tandemTestGame?: GameState }).__tandemTestGame) onGame.current(state) }
+      }, (x, y) => deck.touchPoint(x, y))
+      // A test may stand in for the game's reading (set before the page loads); the app never sets it.
+      const stand = (globalThis as { __tandemTestGame?: GameState }).__tandemTestGame
+      if (stand) window.setTimeout(() => onGame.current(stand), 500)
+    }
+    return () => { emulator?.detach(); deck.dispose(); cockpit.current = null }
+  }, [emulator, solo])
+
+  const onGame = useRef<(state: GameState) => void>(() => {})
+  onGame.current = state => {
+    const root = view.current
+    {
+          if (root) root.dataset.trainer = state.trainer?.name ?? ''
           setGame(state)
           const data = { types: namesRef.current?.types, lines: namesRef.current?.lines }
           const current = runRef.current
@@ -106,11 +122,8 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
           }
           const next = track(current, state, Date.now(), data)
           if (next.run !== current) { runRef.current = next.run; runTo.current?.(next.run) }
-        }
-      }, (x, y) => deck.touchPoint(x, y))
     }
-    return () => { emulator?.detach(); deck.dispose(); cockpit.current = null }
-  }, [emulator, solo])
+  }
 
   useEffect(() => { emulator?.setInputEnabled(focus === 'local'); cockpit.current?.setFocus(focus) }, [focus, emulator])
   useEffect(() => {
@@ -136,6 +149,15 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
   const level = muted ? 0 : volume
   const VolumeIcon = level === 0 ? VolumeX : level < .5 ? Volume1 : Volume2
   const side = layout.partner
+  if (focus === 'local' && layout.front) home.current = { front: layout.front, partner: layout.partner }
+  // The run is laid out for your own view, then moved and scaled with your screens wherever they stand, so while you
+  // spectate it recedes with them into the background.
+  const follow = (): CSSProperties => {
+    const base = home.current.front, now = layout.stations?.local
+    if (!base || !now || focus === 'local') return {}
+    const k = now.width / base.width
+    return { transform: `translate(${now.left - base.left * k}px, ${now.top - base.top * k}px) scale(${k})` }
+  }
   return <section className="play-view" ref={view} data-boot={boot} aria-label="Play">
     <div className="cockpit-stage" ref={stage} role="img" aria-label={focus === 'local' ? 'Your screens, with your partner\'s view to the right' : 'Your partner\'s screens, with yours to the side'}/>
     {layout.stations && player && <span className="pair-tag" data-player="local" style={{ left: layout.stations.local.left, top: layout.stations.local.top - (focus === 'local' ? 30 : 26) }}>{player}</span>}
@@ -144,7 +166,7 @@ export function PlayView({ session: emulator, onExit, player, partner, romSha, s
     {ready && emulator && layout.stations && !pad && <div className="key-strip-anchor" data-hidden={focus !== 'local'} style={{ left: layout.stations.local.x + layout.stations.local.width / 2, top: layout.stations.local.bottom }}><KeyGuide/></div>}
     {error && <p className="play-error" role="alert">{error}</p>}
     {(run ?? loose) && <RunMoments events={(run ?? loose)!.events} names={names ?? null}/>}
-    {(run ?? loose) && ready && game?.trainer?.name && layout.front && <div className="run-scene" data-dim={focus !== 'local'}><RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={layout.stations?.local ?? layout.front} partner={layout.stations?.partner ?? null}/></div>}
+    {(run ?? loose) && ready && game?.trainer?.name && layout.front && <div className="run-scene" data-dim={focus !== 'local'} style={follow()}><RunScene run={(run ?? loose)!} game={game} names={names ?? null} front={home.current.front ?? layout.front} partner={home.current.partner}/></div>}
     {settingsOpen && <div className="cockpit-settings" role="dialog" aria-label="Settings">
       <button className="hud-button cockpit-settings-close" onClick={() => setSettingsOpen(false)} aria-label="Close"><X size={16}/></button>
       <QuickSettings/>

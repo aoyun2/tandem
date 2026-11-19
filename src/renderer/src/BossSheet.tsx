@@ -68,7 +68,7 @@ function MonProfile({ names, mon }: { names: GameNames | null; mon: TrainerMon }
  */
 export type Stop = { name: string; done: boolean; next: boolean; here: boolean; caught?: number; wild: number[] }
 
-export function BossSheet({ names, badges, caps, scouting, stops, ruledOut, style, side = 'right', onClose }: { names: GameNames | null; badges: number; caps: boolean; scouting: boolean; stops: Stop[]; ruledOut: (species: number) => boolean; style: CSSProperties; side?: 'left' | 'right'; onClose: () => void }) {
+export function BossSheet({ names, badges, caps, scouting, stops, ruledOut, style, side = 'right', wide = false, onClose }: { names: GameNames | null; badges: number; caps: boolean; scouting: boolean; stops: Stop[]; ruledOut: (species: number) => boolean; style: CSSProperties; side?: 'left' | 'right'; wide?: boolean; onClose: () => void }) {
   const sheet = useRef<HTMLDivElement>(null)
   const close = useRef(onClose); close.current = onClose
   useEffect(() => {
@@ -87,7 +87,7 @@ export function BossSheet({ names, badges, caps, scouting, stops, ruledOut, styl
   const pick = shown || (teams[0] && teams[0].team.length ? `${teams[0].name}-${teams[0].team.length - 1}` : '')
   const picked = (() => { const [name, k] = pick.split(/-(?=\d+$)/); return teams.find(t => t.name === name)?.team[Number(k)] })()
   const tint = boss.type !== null ? TYPE_COLORS[boss.type] : '#f2c66b'
-  return <div className="boss-sheet" data-side={side} ref={sheet} role="dialog" aria-label={boss.name} style={{ ...style, '--type': tint } as CSSProperties}>
+  return <div className="boss-sheet" data-side={side} data-wide={wide} ref={sheet} role="dialog" aria-label={boss.name} style={{ ...style, '--type': tint } as CSSProperties}>
     <header className="boss-head" key={boss.name}>
       <BossFace names={names} boss={boss} size={104}/>
       <span>

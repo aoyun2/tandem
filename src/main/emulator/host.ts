@@ -78,7 +78,10 @@ function start(config: EmulatorConfig, port: MessagePortMain) {
     send(port, { type: 'saved', bytes: sram.length, at: Date.now() })
   }
 
-  if (config.warmToTitle) warmToTitle(core)
+  // A test may start from a saved emulator state instead of the title; the app never sets it.
+  const testState = process.env.TANDEM_TEST_STATE
+  if (testState && existsSync(testState)) core.unserialize(readFileSync(testState))
+  else if (config.warmToTitle) warmToTitle(core)
   send(port, { type: 'ready', width: core.av.width, height: core.av.height, fps: core.av.fps, sampleRate: core.av.sampleRate, save: saveState })
 
   // The game's state, read from its in-memory save data once a second and sent when it changes.

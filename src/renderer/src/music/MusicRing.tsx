@@ -53,52 +53,65 @@ const prismConic = (c: CanvasRenderingContext2D, turn: number, x: number, y: num
   return g
 }
 
-/** The four glows: their colour, the part of the spectrum (of 8 bands) that drives each, and where each drifts. */
-const GLOWS = [
-  { colour: PRISM[0], bands: [0, 1], orbit: .0, speed: .00011 },
-  { colour: PRISM[1], bands: [2, 3], orbit: 1.6, speed: -.00008 },
-  { colour: PRISM[2], bands: [4, 5], orbit: 3.1, speed: .00009 },
-  { colour: PRISM[3], bands: [6, 7], orbit: 4.7, speed: -.00012 }
-]
-const AMBIENT = 160
+const POINTS = 144
 
 /**
- * The music as ambient light behind the console: four soft glows in the prism's colours drifting slowly round it. The
- * bass swells the coral glow, the low middle the gold, the middle the mint and the highs the blue; the whole light
- * brightens with the overall loudness and pulses with the bass. It is drawn small and scaled up blurred, so it reads as
- * light rather than shape. At rest a faint warm glow remains.
+ * The music as a radial spectrum behind the console. Each angle is a frequency band, mirrored so the lows sit at the
+ * top and bottom, smoothed into one fluid edge. The band between the console's circle and that edge is filled with the
+ * turning prism, brightest at the edge, which carries a thin line with a soft bloom; a slower afterglow trails behind
+ * it, and the whole ring breathes a little with the bass. At rest it is a faint circle. It draws only while shown, and
+ * its glows are wide faint strokes rather than blur filters.
  */
 export function MusicRing({ shown }: { shown: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
-    const el = canvas.current!, c = el.getContext('2d')!, read = spectrum(8, false)
-    el.width = el.height = AMBIENT
-    const held = new Float32Array(GLOWS.length)
+    const el = canvas.current!, c = el.getContext('2d')!, read = spectrum(POINTS, true)
     let frame = 0
     const draw = (now: number) => {
-      if (!shown) { c.clearRect(0, 0, AMBIENT, AMBIENT); return }
+      if (!shown) { c.clearRect(0, 0, el.width, el.height); return }
       frame = requestAnimationFrame(draw)
-      const { level, bass, energy } = read(true)
-      const r = AMBIENT / 2
-      c.clearRect(0, 0, AMBIENT, AMBIENT)
+      const size = Math.min(1000, Math.round(el.clientWidth * devicePixelRatio))
+      if (!size) return
+      if (el.width !== size) { el.width = el.height = size }
+      const { level, glow, bass, energy } = read(true)
+      const r = size / 2, k = size / Math.max(1, el.clientWidth), inner = r * .72 * (1 + bass * .025), reach = r * .24, turn = now / 12000
+      const edge = (values: Float32Array, scale = 1) => {
+        const point = (i: number) => { const t = i / POINTS * Math.PI * 2 - Math.PI / 2, rr = inner + reach * scale * values[(i + POINTS) % POINTS]; return [r + Math.cos(t) * rr, r + Math.sin(t) * rr] }
+        let [px, py] = point(0), [qx, qy] = point(1)
+        c.moveTo((px + qx) / 2, (py + qy) / 2)
+        for (let i = 1; i <= POINTS; i++) { [px, py] = point(i); [qx, qy] = point(i + 1); c.quadraticCurveTo(px, py, (px + qx) / 2, (py + qy) / 2) }
+        c.closePath()
+      }
+      c.clearRect(0, 0, size, size)
+      const prism = prismConic(c, turn, r, r), lit = Math.min(1, energy * 2.5)
+      c.save()
+      // Afterglow: where the edge was a moment ago, faint and wide.
       c.globalCompositeOperation = 'lighter'
-      GLOWS.forEach((g, n) => {
-        const drive = g.bands.reduce((sum, b) => sum + level[b], 0) / g.bands.length
-        held[n] += (drive - held[n]) * (drive > held[n] ? .25 : .04)
-        const angle = g.orbit + now * g.speed, spread = r * (.22 + .12 * held[n])
-        const x = r + Math.cos(angle) * spread, y = r + Math.sin(angle) * spread * .8
-        const radius = r * (.42 + .38 * held[n] + .1 * bass)
-        const glow = c.createRadialGradient(x, y, 0, x, y, radius)
-        glow.addColorStop(0, g.colour); glow.addColorStop(1, 'rgba(0,0,0,0)')
-        c.globalAlpha = Math.min(1, .1 + .75 * held[n] + .25 * energy)
-        c.fillStyle = glow; c.beginPath(); c.arc(x, y, radius, 0, Math.PI * 2); c.fill()
-      })
-      c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1
+      c.beginPath(); edge(glow, 1.04)
+      c.strokeStyle = prism; c.globalAlpha = .06 + .12 * lit; c.lineWidth = k * 10; c.stroke()
+      // The band, brightest towards the edge.
+      c.globalCompositeOperation = 'source-over'
+      c.beginPath(); edge(level); c.moveTo(r + inner, r); c.arc(r, r, inner, 0, Math.PI * 2, true)
+      c.globalAlpha = .12 + .4 * lit; c.fillStyle = prism; c.fill('evenodd')
+      const shade = c.createRadialGradient(r, r, inner, r, r, inner + reach * .9)
+      shade.addColorStop(0, 'rgba(8,9,11,.85)'); shade.addColorStop(1, 'rgba(8,9,11,0)')
+      c.globalCompositeOperation = 'destination-out'; c.globalAlpha = .8; c.fillStyle = shade; c.fill('evenodd')
+      // The edge: a soft bloom of wide faint strokes, then a thin bright line.
+      c.globalCompositeOperation = 'lighter'
+      c.beginPath(); edge(level)
+      c.strokeStyle = prism
+      c.globalAlpha = .08 + .12 * lit; c.lineWidth = k * 14; c.stroke()
+      c.globalAlpha = .14 + .2 * lit; c.lineWidth = k * 6; c.stroke()
+      c.globalAlpha = .55 + .4 * lit; c.lineWidth = k * 1.8; c.stroke()
+      // The console's circle, a hairline.
+      c.globalAlpha = .18; c.lineWidth = k; c.strokeStyle = '#ffffff'
+      c.beginPath(); c.arc(r, r, inner, 0, Math.PI * 2); c.stroke()
+      c.restore()
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
   }, [shown])
-  return <canvas ref={canvas} className="music-ring music-ambient" data-shown={shown} aria-hidden="true"/>
+  return <canvas ref={canvas} className="music-ring" data-shown={shown} aria-hidden="true"/>
 }
 
 /** The same spectrum in miniature, filling the now-playing strip behind it: a smooth prism ridge, lows on the left, highs on the right. */

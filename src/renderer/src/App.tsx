@@ -40,7 +40,7 @@ function Setup({ rom, library, libraryOpen, view, onHome, onPick, onForget, busy
   const [link,setLink]=useState<'idle'|'connecting'|'linked'>('idle')
   const partner=useMemo<PartnerDetails>(()=>{
     const game=((rom&&counterpart(rom.gameCode))??'White 2') as PartnerDetails['game'], code=game==='White 2'?'IRDO':'IREO'
-    return{name:'Test partner',game,pairs:!rom||canPair(rom.gameCode,code),local:true,simulated:true,ping:null}
+    return{name:(globalThis as {__tandemTestPartner?:string}).__tandemTestPartner??'Test partner',game,pairs:!rom||canPair(rom.gameCode,code),local:true,simulated:true,ping:null}
   },[rom])
   useEffect(()=>{onPartner(link==='linked'?partner.name:null)},[link,partner])
   // Room flow lives on the island; the DS top screen mirrors it. Online rooms need the room service, which is not built.
