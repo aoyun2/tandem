@@ -18,8 +18,10 @@ function spectrum(count: number, ring: boolean) {
     const half = ring ? count / 2 : count
     for (let i = 0; i < count; i++) {
       const h = ring ? (i < half ? i : count - 1 - i) : i
-      const bin = Math.min(122, Math.floor(Math.pow(h / half, 1.35) * 118) + 1)
-      const target = Math.pow(bins[bin] / 255, 1.25)
+      // The music's energy sits under about 8 kHz (the first 48 bins at 48 kHz): the points spread over that range,
+      // with a gentle lift towards the highs, which are naturally quieter.
+      const x = h / half, bin = Math.min(48, Math.floor(Math.pow(x, 1.15) * 47) + 1)
+      const target = Math.min(1, Math.pow(bins[bin] / 255, 1.25) * (1 + .55 * x))
       level[i] += (target - level[i]) * (target > level[i] ? .75 : .24)
     }
     for (let pass = 0; pass < 1; pass++) {
