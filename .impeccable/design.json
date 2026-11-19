@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T07:52:03.071144+00:00",
+  "title": "Design System: Tandem",
+  "extensions": {
+    "colorMeta": {
+      "board": {
+        "role": "neutral",
+        "displayName": "Charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.006 250)",
+          "oklch(26% 0.006 250)",
+          "oklch(38% 0.006 250)",
+          "oklch(49% 0.006 250)",
+          "oklch(61% 0.006 250)",
+          "oklch(72% 0.006 250)",
+          "oklch(84% 0.006 250)",
+          "oklch(95% 0.006 250)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.008 250)",
+          "oklch(26% 0.008 250)",
+          "oklch(38% 0.008 250)",
+          "oklch(49% 0.008 250)",
+          "oklch(61% 0.008 250)",
+          "oklch(72% 0.008 250)",
+          "oklch(84% 0.008 250)",
+          "oklch(95% 0.008 250)"
+        ]
+      },
+      "chalk": {
+        "role": "neutral",
+        "displayName": "Warm white",
+        "tonalRamp": [
+          "oklch(15% 0.01 90)",
+          "oklch(26% 0.01 90)",
+          "oklch(38% 0.01 90)",
+          "oklch(49% 0.01 90)",
+          "oklch(61% 0.01 90)",
+          "oklch(72% 0.01 90)",
+          "oklch(84% 0.01 90)",
+          "oklch(95% 0.01 90)"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Warm gray",
+        "tonalRamp": [
+          "oklch(15% 0.012 90)",
+          "oklch(26% 0.012 90)",
+          "oklch(38% 0.012 90)",
+          "oklch(49% 0.012 90)",
+          "oklch(61% 0.012 90)",
+          "oklch(72% 0.012 90)",
+          "oklch(84% 0.012 90)",
+          "oklch(95% 0.012 90)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Pale blue",
+        "tonalRamp": [
+          "oklch(15% 0.05 240)",
+          "oklch(26% 0.05 240)",
+          "oklch(38% 0.05 240)",
+          "oklch(49% 0.05 240)",
+          "oklch(61% 0.05 240)",
+          "oklch(72% 0.05 240)",
+          "oklch(84% 0.05 240)",
+          "oklch(95% 0.05 240)"
+        ]
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Status green",
+        "tonalRamp": [
+          "oklch(15% 0.05 140)",
+          "oklch(26% 0.05 140)",
+          "oklch(38% 0.05 140)",
+          "oklch(49% 0.05 140)",
+          "oklch(61% 0.05 140)",
+          "oklch(72% 0.05 140)",
+          "oklch(84% 0.05 140)",
+          "oklch(95% 0.05 140)"
+        ]
+      },
+      "red": {
+        "role": "secondary",
+        "displayName": "Error red",
+        "tonalRamp": [
+          "oklch(15% 0.06 25)",
+          "oklch(26% 0.06 25)",
+          "oklch(38% 0.06 25)",
+          "oklch(49% 0.06 25)",
+          "oklch(61% 0.06 25)",
+          "oklch(72% 0.06 25)",
+          "oklch(84% 0.06 25)",
+          "oklch(95% 0.06 25)"
+        ]
+      },
+      "glass-smoke": {
+        "role": "neutral",
+        "displayName": "Smoked black",
+        "tonalRamp": [
+          "oklch(15% 0.008 260)",
+          "oklch(26% 0.008 260)",
+          "oklch(38% 0.008 260)",
+          "oklch(49% 0.008 260)",
+          "oklch(61% 0.008 260)",
+          "oklch(72% 0.008 260)",
+          "oklch(84% 0.008 260)",
+          "oklch(95% 0.008 260)"
+        ]
+      },
+      "button-ink": {
+        "role": "neutral",
+        "displayName": "Dark blue",
+        "tonalRamp": [
+          "oklch(15% 0.035 235)",
+          "oklch(26% 0.035 235)",
+          "oklch(38% 0.035 235)",
+          "oklch(49% 0.035 235)",
+          "oklch(61% 0.035 235)",
+          "oklch(72% 0.035 235)",
+          "oklch(84% 0.035 235)",
+          "oklch(95% 0.035 235)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Lighter blue",
+        "tonalRamp": [
+          "oklch(15% 0.04 240)",
+          "oklch(26% 0.04 240)",
+          "oklch(38% 0.04 240)",
+          "oklch(49% 0.04 240)",
+          "oklch(61% 0.04 240)",
+          "oklch(72% 0.04 240)",
+          "oklch(84% 0.04 240)",
+          "oklch(95% 0.04 240)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Page heading",
+        "purpose": "Sans-serif page headings."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Serif product identity."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Interface text and descriptions."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glass-panel",
+        "value": "0 10px 28px #00000026",
+        "purpose": "Diffuse shared glass depth."
+      },
+      {
+        "name": "setup-panel",
+        "value": "inset 0 1px 0 #ffffff24,inset 0 -1px 0 #0009,0 18px 40px #0003",
+        "purpose": "One shared setup container."
+      },
+      {
+        "name": "primary-button",
+        "value": "inset 0 1px 0 #ffffffb0,inset 0 -2px 1px #547487,0 5px 9px #0005",
+        "purpose": "Raised primary action."
+      }
+    ],
+    "motion": [
+      {
+        "name": "busy-spinner",
+        "value": "spin .8s linear infinite",
+        "purpose": "Disabled under reduced motion."
+      },
+      {
+        "name": "splash-wipe",
+        "value": "650ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Mark wipe after minimum 2700ms hold; skipped under reduced motion."
+      },
+      {
+        "name": "splash-fade",
+        "value": "320ms ease",
+        "purpose": "Fade after 800ms tail; skipped under reduced motion."
+      },
+      {
+        "name": "monitor-static",
+        "value": "120ms refresh",
+        "purpose": "Low-contrast screen noise; one still frame under reduced motion."
+      },
+      {
+        "name": "cartridge-idle",
+        "value": "yaw +/-0.07rad after 1800ms idle",
+        "purpose": "Subtle cartridge-only motion; disabled during interaction and reduced motion. Camera remains fixed."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "horizontal-navigation",
+        "value": "800px"
+      },
+      {
+        "name": "stacked-setup",
+        "value": "590px"
+      },
+      {
+        "name": "short-height",
+        "value": "700px (max-height)",
+        "purpose": "Keep cartridge visible including expanded fingerprint; scene wrapper minimum 180px and canvas region minimum 150px. Hide selected caption, compact metadata and ROM action."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Opens native ROM selection; the label changes after selection.",
+      "html": "<button class=\"ds-primary\">Choose base ROM</button>",
+      "css": ".ds-primary{font-family:'Source Sans 3','Segoe UI',sans-serif;font-size:16px;line-height:1.5;display:flex;align-items:center;justify-content:center;width:100%;max-width:360px;min-height:48px;border:0;border-radius:9px;background:linear-gradient(#c6ddeb,#9ebbd0);color:#14303f;padding:12px 18px;font-weight:600;cursor:pointer;box-shadow:inset 0 1px 0 #ffffffb0,inset 0 -2px 1px #547487,0 5px 9px #0005}.ds-primary:hover{background:linear-gradient(#dfecf4,#b1cddd)}.ds-primary:active{transform:translateY(2px);box-shadow:inset 0 1px 2px #335266,0 2px 4px #0005}.ds-primary:disabled{cursor:wait;opacity:.65}.ds-primary:focus-visible{outline:2px solid var(--accent,#a8c8e4);outline-offset:5px}"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Text and icon navigation, with a persistent active page.",
+      "html": "<nav aria-label=\"Main navigation\"><button class=\"ds-nav ds-active\" aria-current=\"page\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>Set up</button><button class=\"ds-nav\">Controls</button></nav>",
+      "css": ".ds-nav{font-family:'Source Sans 3','Segoe UI',sans-serif;font-size:15px;line-height:1.5;display:flex;gap:9px;align-items:center;width:100%;min-height:46px;padding:10px 12px;background:linear-gradient(#34383b,#292c2e);box-shadow:inset 0 1px 0 #ffffff17,0 3px 5px #0004;border:0;border-radius:8px;text-align:left;color:var(--chalk,#f2f0e9);cursor:pointer;margin-bottom:8px}.ds-nav:hover{background:linear-gradient(#3d4246,#303538)}.ds-nav.ds-active{background:linear-gradient(#1c242a,#27343e);box-shadow:inset 0 2px 5px #0008,inset 0 -1px 0 #ffffff14;color:#bdd8ee}.ds-nav:active{transform:translateY(1px)}.ds-nav:focus-visible{outline:2px solid var(--accent,#a8c8e4);outline-offset:5px}"
+    },
+    {
+      "name": "Status tag",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Non-interactive platform or development-state label.",
+      "html": "<span class=\"ds-tag\">Nintendo DS</span>",
+      "css": ".ds-tag{font-family:'Source Sans 3','Segoe UI',sans-serif;font-size:16px;line-height:1.5;display:inline-flex;font-size:12px;color:var(--dim,#b9b6ae);background:#ffffff08;border-radius:6px;padding:4px 8px;white-space:nowrap}"
+    },
+    {
+      "name": "Glass panel",
+      "kind": "card",
+      "refersTo": "glass-panel",
+      "description": "Shared Fresco smoke and reflective rim for controls and development; setup uses its own outer container.",
+      "html": "<section class=\"ds-glass\"><h2 class=\"ds-heading\">Controller</h2><p class=\"ds-copy\">Raw input detection only.</p></section>",
+      "css": ".ds-glass{font-family:'Source Sans 3','Segoe UI',sans-serif;font-size:16px;line-height:1.5;position:relative;isolation:isolate;color:var(--chalk,#f2f0e9);background:none;box-shadow:0 10px 28px #00000026;border-radius:16px;padding:24px}.ds-glass:before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;background:var(--glass-smoke,rgba(21,23,26,.6));backdrop-filter:var(--glass-filter,blur(14px) saturate(1.4));pointer-events:none}.ds-glass:after{content:'';position:absolute;inset:0;z-index:-1;padding:1px;border-radius:inherit;background:conic-gradient(#ffffff35,#ffffff0a 45deg,#ffffff35 90deg,#ffffff4d 135deg,#ffffff35 180deg,#ffffff0a 225deg,#ffffff35 270deg,#ffffff4d 315deg,#ffffff35);mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;pointer-events:none}.ds-heading{font-size:19px;font-weight:600;margin:0}.ds-copy{color:var(--dim,#b9b6ae);margin:12px 0 0;max-width:70ch}"
+    },
+    {
+      "name": "Fingerprint disclosure",
+      "kind": "custom",
+      "description": "Native expandable file identity details.",
+      "html": "<details class=\"ds-details\"><summary>View file fingerprint</summary><code>File SHA-256 appears here after inspection.</code></details>",
+      "css": ".ds-details{font-family:'Source Sans 3','Segoe UI',sans-serif;font-size:16px;line-height:1.5;font-size:14px;color:var(--chalk,#f2f0e9);margin:10px 0;overflow-wrap:anywhere}.ds-details summary{cursor:pointer;color:var(--accent,#a8c8e4)}.ds-details code{display:block;margin-top:8px;font-size:11px;user-select:all}.ds-details summary:focus-visible{outline:2px solid var(--accent,#a8c8e4);outline-offset:5px}"
+    },
+    {
+      "name": "Setup container",
+      "kind": "card",
+      "refersTo": "setup-panel",
+      "description": "One shared glass surface containing two transparent setup columns.",
+      "html": "<section class=\"ds-setup\"><div>Your game</div><div>Partner</div></section>",
+      "css": ".ds-setup{font:600 17px/1.5 'Source Sans 3','Segoe UI',sans-serif;color:var(--chalk,#f2f0e9);display:grid;grid-template-columns:1.05fr 1fr;gap:40px;border-radius:20px;background:rgba(17,20,23,.38);box-shadow:inset 0 1px 0 #ffffff24,inset 0 -1px 0 #0009,0 18px 40px #0003;backdrop-filter:blur(18px);padding:24px;min-height:120px}"
+    },
+    {
+      "name": "Monitor offline status",
+      "kind": "custom",
+      "description": "Non-interactive screen-plane placeholder, shown here at readable panel scale. The application positions it with CSS3DRenderer over static noise.",
+      "html": "<div class=\"ds-screen\"><div class=\"ds-standby\"><span>NO SIGNAL</span><p>Partner offline</p></div></div>",
+      "css": ".ds-screen{font-family:'Source Sans 3','Segoe UI',sans-serif;background:#151a1d;padding:28px;min-height:180px;display:grid;place-items:center}.ds-standby{text-align:center;color:#e4e8e9;text-shadow:0 2px 4px #000;line-height:1.4}.ds-standby>span{font-size:24px;font-weight:600;letter-spacing:.06em}.ds-standby p{margin:12px 0 0;color:#c5ced2;font-size:18px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Fresco glass with physical objects",
+    "overview": "Tandem retains Fresco's charcoal background, smoked liquid glass, reflective edges, warm text and pale blue accent. A rotatable cartridge and an angled monitor provide recognizable physical forms. Raised buttons and inset selected navigation retain subdued gradients and highlights.\n\nThe current desktop preview provides ROM inspection and raw controller detection. Its partner monitor displays a non-interactive NO SIGNAL and Partner offline placeholder. Emulation and networking are not implemented. This document records the current renderer; removed keyboard and session-demo surfaces do not define the current system.",
+    "keyCharacteristics": [
+      "Smoked glass and charcoal surfaces with selective reflective edges.",
+      "Runtime 3D cartridge and monitor objects with material lighting.",
+      "Sans-serif interface headings and a serif wordmark.",
+      "Offline partner status attached to the monitor's screen plane."
+    ],
+    "rules": [
+      {
+        "name": "The Status Rule",
+        "body": "Keep unavailable features and verified checks explicitly distinguishable in visible copy.",
+        "section": "colors"
+      },
+      {
+        "name": "The Type Role Rule",
+        "body": "Preserve the serif wordmark and use sans-serif for interface headings, controls and status.",
+        "section": "typography"
+      },
+      {
+        "name": "The Object Source Rule",
+        "body": "Use realistic, externally sourced 3D models for physical objects; preserve their attribution and licenses rather than substituting procedural or CSS approximations. Source and modification details live in `docs/ASSETS.md`.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do retain Fresco smoke, reflective edges and the charcoal background.",
+      "Do preserve sourced model geometry, shell textures, material lighting and attribution.",
+      "Do place offline status on the monitor's screen plane.",
+      "Do distinguish the sourced cartridge model from its adapted box-art label.",
+      "Do preserve visible focus, readable status and wrapping technical values."
+    ],
+    "donts": [
+      "Don't present the offline placeholder as working networking.",
+      "Don't add floor planes or cast floor shadows beneath the objects.",
+      "Don't substitute procedural or CSS approximations for externally sourced physical models.",
+      "Don't hide the cartridge when the fingerprint opens, including at viewport heights of 700px and below.",
+      "Don't restore removed keyboard or session-demo surfaces as established components."
+    ]
+  }
+}

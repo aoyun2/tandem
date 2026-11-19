@@ -1,0 +1,1670 @@
+{
+  "status": "Requirements inventory, not implemented support. Generation eligibility is not a ROM capability check.",
+  "source": "https://github.com/souldewapp/souldew/blob/f8c6c200486ec755b115ab40c9b0cd87e44acf5b/shared/randomizer-options.mjs",
+  "inspectedVersion": "2.8.1",
+  "sourceLicense": "GPL-3.0-or-later; source identifiers, enum values and constraints retained as interoperability reference.",
+  "fieldCount": 131,
+  "generation5CandidateCount": 117,
+  "groups": [
+    {
+      "id": "starters",
+      "fields": [
+        {
+          "key": "startersMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "COMPLETELY_RANDOM"
+            },
+            {
+              "value": "RANDOM_WITH_TWO_EVOLUTIONS"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeStartersHeldItems",
+          "type": "bool",
+          "generations": [
+            2,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banBadRandomStarterHeldItems",
+          "type": "bool",
+          "generations": [
+            2,
+            9
+          ],
+          "dependsOn": "randomizeStartersHeldItems",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "allowStarterAltFormes",
+          "type": "bool",
+          "generations": [
+            6,
+            9
+          ],
+          "dependsOn": "startersMod",
+          "default": false,
+          "generation5Candidate": false
+        }
+      ]
+    },
+    {
+      "id": "wild",
+      "fields": [
+        {
+          "key": "wildPokemonMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "AREA_MAPPING"
+            },
+            {
+              "value": "GLOBAL_MAPPING"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "wildPokemonRestrictionMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "NONE"
+            },
+            {
+              "value": "SIMILAR_STRENGTH"
+            },
+            {
+              "value": "CATCH_EM_ALL"
+            },
+            {
+              "value": "TYPE_THEME_AREAS"
+            }
+          ],
+          "dependsOn": "wildPokemonMod",
+          "default": "NONE",
+          "generation5Candidate": true
+        },
+        {
+          "key": "useTimeBasedEncounters",
+          "type": "bool",
+          "dependsOn": "wildPokemonMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "blockWildLegendaries",
+          "type": "bool",
+          "dependsOn": "wildPokemonMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "allowWildAltFormes",
+          "type": "bool",
+          "generations": [
+            5,
+            9
+          ],
+          "dependsOn": "wildPokemonMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "balanceShakingGrass",
+          "type": "bool",
+          "generations": [
+            5,
+            5
+          ],
+          "dependsOn": "wildPokemonMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "useMinimumCatchRate",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "minimumCatchRateLevel",
+          "type": "int",
+          "min": 1,
+          "max": 5,
+          "dependsOn": "useMinimumCatchRate",
+          "default": 1,
+          "generation5Candidate": true
+        },
+        {
+          "key": "wildLevelsModified",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "wildLevelModifier",
+          "type": "int",
+          "min": -50,
+          "max": 50,
+          "dependsOn": "wildLevelsModified",
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeWildPokemonHeldItems",
+          "type": "bool",
+          "generations": [
+            2,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banBadRandomWildPokemonHeldItems",
+          "type": "bool",
+          "generations": [
+            2,
+            9
+          ],
+          "dependsOn": "randomizeWildPokemonHeldItems",
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "trainers",
+      "fields": [
+        {
+          "key": "trainersMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "DISTRIBUTED"
+            },
+            {
+              "value": "MAINPLAYTHROUGH",
+              "gens": [
+                5,
+                5
+              ],
+              "fallback": "RANDOM"
+            },
+            {
+              "value": "TYPE_THEMED"
+            },
+            {
+              "value": "TYPE_THEMED_ELITE4_GYMS"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersUsePokemonOfSimilarStrength",
+          "type": "bool",
+          "dependsOn": "trainersMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersMatchTypingDistribution",
+          "type": "bool",
+          "dependsOn": {
+            "key": "trainersMod",
+            "in": [
+              "TYPE_THEMED",
+              "TYPE_THEMED_ELITE4_GYMS"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "rivalCarriesStarterThroughout",
+          "type": "bool",
+          "dependsOn": [
+            "trainersMod",
+            "startersMod"
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersBlockLegendaries",
+          "type": "bool",
+          "dependsOn": "trainersMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersBlockEarlyWonderGuard",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "trainersMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "allowTrainerAlternateFormes",
+          "type": "bool",
+          "generations": [
+            4,
+            9
+          ],
+          "dependsOn": "trainersMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "swapTrainerMegaEvos",
+          "type": "bool",
+          "generations": [
+            6,
+            7
+          ],
+          "dependsOn": "trainersMod",
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "eliteFourUniquePokemonNumber",
+          "type": "int",
+          "min": 0,
+          "max": 2,
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "trainersMod",
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersForceFullyEvolved",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersForceFullyEvolvedLevel",
+          "type": "int",
+          "min": 30,
+          "max": 65,
+          "dependsOn": "trainersForceFullyEvolved",
+          "default": 30,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersLevelModified",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "trainersLevelModifier",
+          "type": "int",
+          "min": -50,
+          "max": 50,
+          "dependsOn": "trainersLevelModified",
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "additionalBossTrainerPokemon",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "generations": [
+            3,
+            9
+          ],
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "additionalImportantTrainerPokemon",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "generations": [
+            3,
+            9
+          ],
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "additionalRegularTrainerPokemon",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "generations": [
+            3,
+            9
+          ],
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeHeldItemsForBossTrainerPokemon",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeHeldItemsForImportantTrainerPokemon",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeHeldItemsForRegularTrainerPokemon",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "sensibleItemsOnlyForTrainerPokemon",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": [
+            "randomizeHeldItemsForBossTrainerPokemon",
+            "randomizeHeldItemsForImportantTrainerPokemon",
+            "randomizeHeldItemsForRegularTrainerPokemon"
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "consumableItemsOnlyForTrainerPokemon",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": [
+            "randomizeHeldItemsForBossTrainerPokemon",
+            "randomizeHeldItemsForImportantTrainerPokemon",
+            "randomizeHeldItemsForRegularTrainerPokemon"
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "highestLevelOnlyGetsItemsForTrainerPokemon",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": [
+            "randomizeHeldItemsForBossTrainerPokemon",
+            "randomizeHeldItemsForImportantTrainerPokemon",
+            "randomizeHeldItemsForRegularTrainerPokemon"
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "betterTrainerMovesets",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeTrainerNames",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeTrainerClassNames",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "statics",
+      "fields": [
+        {
+          "key": "staticPokemonMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM_MATCHING"
+            },
+            {
+              "value": "COMPLETELY_RANDOM"
+            },
+            {
+              "value": "SIMILAR_STRENGTH"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "limitMainGameLegendaries",
+          "type": "bool",
+          "dependsOn": {
+            "key": "staticPokemonMod",
+            "in": [
+              "SIMILAR_STRENGTH"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "limit600",
+          "type": "bool",
+          "dependsOn": {
+            "key": "staticPokemonMod",
+            "in": [
+              "SIMILAR_STRENGTH"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "swapStaticMegaEvos",
+          "type": "bool",
+          "generations": [
+            6,
+            7
+          ],
+          "dependsOn": "staticPokemonMod",
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "allowStaticAltFormes",
+          "type": "bool",
+          "generations": [
+            6,
+            9
+          ],
+          "dependsOn": "staticPokemonMod",
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "staticLevelModified",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "staticLevelModifier",
+          "type": "int",
+          "min": -50,
+          "max": 50,
+          "dependsOn": "staticLevelModified",
+          "default": 0,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "totems",
+      "fields": [
+        {
+          "key": "totemPokemonMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "SIMILAR_STRENGTH"
+            }
+          ],
+          "generations": [
+            7,
+            7
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": false
+        },
+        {
+          "key": "allyPokemonMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "SIMILAR_STRENGTH"
+            }
+          ],
+          "generations": [
+            7,
+            7
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": false
+        },
+        {
+          "key": "auraMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "SAME_STRENGTH"
+            }
+          ],
+          "generations": [
+            7,
+            7
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": false
+        },
+        {
+          "key": "randomizeTotemHeldItems",
+          "type": "bool",
+          "generations": [
+            7,
+            7
+          ],
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "allowTotemAltFormes",
+          "type": "bool",
+          "generations": [
+            7,
+            7
+          ],
+          "dependsOn": [
+            "totemPokemonMod",
+            "allyPokemonMod"
+          ],
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "totemLevelsModified",
+          "type": "bool",
+          "generations": [
+            7,
+            7
+          ],
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "totemLevelModifier",
+          "type": "int",
+          "min": -50,
+          "max": 50,
+          "generations": [
+            7,
+            7
+          ],
+          "dependsOn": "totemLevelsModified",
+          "default": 0,
+          "generation5Candidate": false
+        }
+      ]
+    },
+    {
+      "id": "evolutions",
+      "fields": [
+        {
+          "key": "evolutionsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "RANDOM_EVERY_LEVEL",
+              "gens": [
+                3,
+                9
+              ],
+              "fallback": "RANDOM"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "evosSimilarStrength",
+          "type": "bool",
+          "dependsOn": {
+            "key": "evolutionsMod",
+            "in": [
+              "RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "evosSameTyping",
+          "type": "bool",
+          "dependsOn": "evolutionsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "evosMaxThreeStages",
+          "type": "bool",
+          "dependsOn": {
+            "key": "evolutionsMod",
+            "in": [
+              "RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "evosForceChange",
+          "type": "bool",
+          "dependsOn": "evolutionsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "changeImpossibleEvolutions",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "makeEvolutionsEasier",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "removeTimeBasedEvolutions",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "pokemon",
+      "fields": [
+        {
+          "key": "typesMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM_FOLLOW_EVOLUTIONS"
+            },
+            {
+              "value": "COMPLETELY_RANDOM"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "dualTypeOnly",
+          "type": "bool",
+          "dependsOn": "typesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "typesFollowMegaEvolutions",
+          "type": "bool",
+          "generations": [
+            6,
+            7
+          ],
+          "dependsOn": {
+            "key": "typesMod",
+            "in": [
+              "RANDOM_FOLLOW_EVOLUTIONS"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "abilitiesMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOMIZE"
+            }
+          ],
+          "generations": [
+            3,
+            9
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "abilitiesFollowEvolutions",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": true,
+          "generation5Candidate": true
+        },
+        {
+          "key": "abilitiesFollowMegaEvolutions",
+          "type": "bool",
+          "generations": [
+            6,
+            7
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "ensureTwoAbilities",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "weighDuplicateAbilitiesTogether",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "allowWonderGuard",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banTrappingAbilities",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": true,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banNegativeAbilities",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": true,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banBadAbilities",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "abilitiesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "baseStatisticsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "SHUFFLE"
+            },
+            {
+              "value": "RANDOM"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "baseStatsFollowEvolutions",
+          "type": "bool",
+          "dependsOn": "baseStatisticsMod",
+          "default": true,
+          "generation5Candidate": true
+        },
+        {
+          "key": "baseStatsFollowMegaEvolutions",
+          "type": "bool",
+          "generations": [
+            6,
+            7
+          ],
+          "dependsOn": "baseStatisticsMod",
+          "default": false,
+          "generation5Candidate": false
+        },
+        {
+          "key": "assignEvoStatsRandomly",
+          "type": "bool",
+          "dependsOn": "baseStatsFollowEvolutions",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "updateBaseStats",
+          "type": "bool",
+          "generations": [
+            1,
+            8
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "updateBaseStatsToGeneration",
+          "type": "select",
+          "values": [
+            {
+              "value": 6,
+              "gens": [
+                1,
+                5
+              ]
+            },
+            {
+              "value": 7,
+              "gens": [
+                1,
+                6
+              ]
+            },
+            {
+              "value": 8,
+              "gens": [
+                1,
+                7
+              ]
+            },
+            {
+              "value": 9,
+              "gens": [
+                1,
+                8
+              ]
+            }
+          ],
+          "generations": [
+            1,
+            8
+          ],
+          "dependsOn": "updateBaseStats",
+          "numeric": true,
+          "default": 9,
+          "generation5Candidate": true
+        },
+        {
+          "key": "standardizeEXPCurves",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "selectedEXPCurve",
+          "type": "select",
+          "values": [
+            {
+              "value": "MEDIUM_FAST"
+            },
+            {
+              "value": "MEDIUM_SLOW"
+            },
+            {
+              "value": "FAST"
+            },
+            {
+              "value": "SLOW"
+            },
+            {
+              "value": "ERRATIC"
+            },
+            {
+              "value": "FLUCTUATING"
+            }
+          ],
+          "dependsOn": "standardizeEXPCurves",
+          "default": "MEDIUM_FAST",
+          "generation5Candidate": true
+        },
+        {
+          "key": "expCurveMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "LEGENDARIES"
+            },
+            {
+              "value": "STRONG_LEGENDARIES"
+            },
+            {
+              "value": "ALL"
+            }
+          ],
+          "dependsOn": "standardizeEXPCurves",
+          "default": "LEGENDARIES",
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "moves",
+      "fields": [
+        {
+          "key": "movesetsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM_PREFER_SAME_TYPE"
+            },
+            {
+              "value": "COMPLETELY_RANDOM"
+            },
+            {
+              "value": "METRONOME_ONLY"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "startWithGuaranteedMoves",
+          "type": "bool",
+          "dependsOn": {
+            "key": "movesetsMod",
+            "in": [
+              "RANDOM_PREFER_SAME_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "guaranteedMoveCount",
+          "type": "int",
+          "min": 2,
+          "max": 4,
+          "dependsOn": "startWithGuaranteedMoves",
+          "default": 2,
+          "generation5Candidate": true
+        },
+        {
+          "key": "reorderDamagingMoves",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "movesetsForceGoodDamaging",
+          "type": "bool",
+          "dependsOn": {
+            "key": "movesetsMod",
+            "in": [
+              "RANDOM_PREFER_SAME_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "movesetsGoodDamagingPercent",
+          "type": "int",
+          "min": 0,
+          "max": 100,
+          "dependsOn": "movesetsForceGoodDamaging",
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "blockBrokenMovesetMoves",
+          "type": "bool",
+          "dependsOn": {
+            "key": "movesetsMod",
+            "in": [
+              "RANDOM_PREFER_SAME_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "updateMoves",
+          "type": "bool",
+          "generations": [
+            1,
+            8
+          ],
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "updateMovesToGeneration",
+          "type": "select",
+          "values": [
+            {
+              "value": 2,
+              "gens": [
+                1,
+                1
+              ]
+            },
+            {
+              "value": 3,
+              "gens": [
+                1,
+                2
+              ]
+            },
+            {
+              "value": 4,
+              "gens": [
+                1,
+                3
+              ]
+            },
+            {
+              "value": 5,
+              "gens": [
+                1,
+                4
+              ]
+            },
+            {
+              "value": 6,
+              "gens": [
+                1,
+                5
+              ]
+            },
+            {
+              "value": 7,
+              "gens": [
+                1,
+                6
+              ]
+            },
+            {
+              "value": 8,
+              "gens": [
+                1,
+                7
+              ]
+            },
+            {
+              "value": 9,
+              "gens": [
+                1,
+                8
+              ]
+            }
+          ],
+          "generations": [
+            1,
+            8
+          ],
+          "dependsOn": "updateMoves",
+          "numeric": true,
+          "default": 9,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeMovePowers",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeMoveAccuracies",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeMovePPs",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeMoveTypes",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeMoveCategory",
+          "type": "bool",
+          "generations": [
+            4,
+            9
+          ],
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "tms",
+      "fields": [
+        {
+          "key": "tmsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "keepFieldMoveTMs",
+          "type": "bool",
+          "dependsOn": "tmsMod",
+          "default": true,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tmsForceGoodDamaging",
+          "type": "bool",
+          "dependsOn": "tmsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tmsGoodDamagingPercent",
+          "type": "int",
+          "min": 0,
+          "max": 100,
+          "dependsOn": "tmsForceGoodDamaging",
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "blockBrokenTMMoves",
+          "type": "bool",
+          "dependsOn": "tmsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tmsHmsCompatibilityMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM_PREFER_TYPE"
+            },
+            {
+              "value": "COMPLETELY_RANDOM"
+            },
+            {
+              "value": "FULL"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "tmLevelUpMoveSanity",
+          "type": "bool",
+          "dependsOn": {
+            "key": "tmsHmsCompatibilityMod",
+            "in": [
+              "RANDOM_PREFER_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tmsFollowEvolutions",
+          "type": "bool",
+          "dependsOn": {
+            "key": "tmsHmsCompatibilityMod",
+            "in": [
+              "RANDOM_PREFER_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "fullHMCompat",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "tutors",
+      "fields": [
+        {
+          "key": "moveTutorMovesMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "keepFieldMoveTutors",
+          "type": "bool",
+          "dependsOn": "moveTutorMovesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tutorsForceGoodDamaging",
+          "type": "bool",
+          "dependsOn": "moveTutorMovesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tutorsGoodDamagingPercent",
+          "type": "int",
+          "min": 0,
+          "max": 100,
+          "dependsOn": "tutorsForceGoodDamaging",
+          "default": 0,
+          "generation5Candidate": true
+        },
+        {
+          "key": "blockBrokenTutorMoves",
+          "type": "bool",
+          "dependsOn": "moveTutorMovesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "moveTutorsCompatibilityMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM_PREFER_TYPE"
+            },
+            {
+              "value": "COMPLETELY_RANDOM"
+            },
+            {
+              "value": "FULL"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "tutorLevelUpMoveSanity",
+          "type": "bool",
+          "dependsOn": {
+            "key": "moveTutorsCompatibilityMod",
+            "in": [
+              "RANDOM_PREFER_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "tutorFollowEvolutions",
+          "type": "bool",
+          "dependsOn": {
+            "key": "moveTutorsCompatibilityMod",
+            "in": [
+              "RANDOM_PREFER_TYPE",
+              "COMPLETELY_RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    },
+    {
+      "id": "items",
+      "fields": [
+        {
+          "key": "fieldItemsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "SHUFFLE"
+            },
+            {
+              "value": "RANDOM"
+            },
+            {
+              "value": "RANDOM_EVEN"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "banBadRandomFieldItems",
+          "type": "bool",
+          "dependsOn": {
+            "key": "fieldItemsMod",
+            "in": [
+              "RANDOM",
+              "RANDOM_EVEN"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "shopItemsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "SHUFFLE"
+            },
+            {
+              "value": "RANDOM"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "banBadRandomShopItems",
+          "type": "bool",
+          "dependsOn": {
+            "key": "shopItemsMod",
+            "in": [
+              "RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banRegularShopItems",
+          "type": "bool",
+          "dependsOn": {
+            "key": "shopItemsMod",
+            "in": [
+              "RANDOM"
+            ]
+          },
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "banOPShopItems",
+          "type": "bool",
+          "dependsOn": "shopItemsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "guaranteeEvolutionItems",
+          "type": "bool",
+          "dependsOn": "shopItemsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "guaranteeXItems",
+          "type": "bool",
+          "dependsOn": "shopItemsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "balanceShopPrices",
+          "type": "bool",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "pickupItemsMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOM"
+            }
+          ],
+          "generations": [
+            3,
+            9
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "banBadRandomPickupItems",
+          "type": "bool",
+          "generations": [
+            3,
+            9
+          ],
+          "dependsOn": "pickupItemsMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "inGameTradesMod",
+          "type": "select",
+          "values": [
+            {
+              "value": "UNCHANGED"
+            },
+            {
+              "value": "RANDOMIZE_GIVEN"
+            },
+            {
+              "value": "RANDOMIZE_GIVEN_AND_REQUESTED"
+            }
+          ],
+          "default": "UNCHANGED",
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeInGameTradesNicknames",
+          "type": "bool",
+          "dependsOn": "inGameTradesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeInGameTradesOTs",
+          "type": "bool",
+          "dependsOn": "inGameTradesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeInGameTradesIVs",
+          "type": "bool",
+          "dependsOn": "inGameTradesMod",
+          "default": false,
+          "generation5Candidate": true
+        },
+        {
+          "key": "randomizeInGameTradesItems",
+          "type": "bool",
+          "dependsOn": "inGameTradesMod",
+          "default": false,
+          "generation5Candidate": true
+        }
+      ]
+    }
+  ],
+  "miscTweakIdentifiers": [
+    "FASTEST_TEXT",
+    "NATIONAL_DEX_AT_START",
+    "UPDATE_TYPE_EFFECTIVENESS",
+    "LOWER_CASE_POKEMON_NAMES",
+    "RANDOMIZE_CATCHING_TUTORIAL",
+    "BAN_LUCKY_EGG",
+    "RUN_WITHOUT_RUNNING_SHOES",
+    "FASTER_HP_AND_EXP_BARS",
+    "UPDATE_ROTOM_FORME_TYPING",
+    "RUNNING_SHOES_INDOORS",
+    "RANDOMIZE_PC_POTION",
+    "ALLOW_PIKACHU_EVOLUTION",
+    "BAN_BIG_MANIAC_ITEMS",
+    "NO_FREE_LUCKY_EGG",
+    "BALANCE_STATIC_LEVELS",
+    "FAST_DISTORTION_WORLD",
+    "DISABLE_LOW_HP_MUSIC",
+    "BW_EXP_PATCH",
+    "NERF_X_ACCURACY",
+    "FIX_CRIT_RATE",
+    "FORCE_CHALLENGE_MODE",
+    "RETAIN_ALT_FORMES",
+    "SOS_BATTLES_FOR_ALL"
+  ],
+  "presetIdentifiers": [
+    "soullink",
+    "soullink-trainers",
+    "hardcore",
+    "chaos",
+    "vanilla-plus",
+    "light"
+  ]
+}

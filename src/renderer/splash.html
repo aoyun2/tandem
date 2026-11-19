@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'" />
+  <title>Tandem</title>
+  <style>
+    html,body,#root { height:100%; margin:0; overflow:hidden; background:transparent; user-select:none; -webkit-app-region:drag }
+    body { background:rgba(21,23,26,.55); box-shadow:inset 0 1px 0 #ffffff29,inset 0 0 0 1px #ffffff14; transition:opacity 320ms ease }
+    #root { display:grid; place-items:center }
+    svg { width:100px; height:100px; color:#ece8e0; filter:drop-shadow(0 3px 6px #0006); animation:enter 700ms cubic-bezier(.2,.8,.2,1) both }
+    .sweep { opacity:0; animation:sweep 1100ms 450ms cubic-bezier(.45,0,.2,1) both }
+    .leave svg { animation:leave 460ms cubic-bezier(.6,0,.8,.4) both }
+    .gone { opacity:0; transition:opacity 420ms ease-in }
+    @keyframes enter { from { opacity:0; transform:scale(.94); filter:blur(4px) drop-shadow(0 3px 6px #0006) } to { opacity:1; transform:none } }
+    @keyframes sweep { 0% { opacity:0; transform:translateX(-90px) } 20% { opacity:.9 } 80% { opacity:.9 } 100% { opacity:0; transform:translateX(90px) } }
+    @keyframes leave { to { opacity:0; transform:scale(1.14); filter:blur(6px) } }
+    @media(prefers-reduced-motion:reduce) { svg, .sweep, .leave svg { animation:none } .sweep { opacity:0 } .gone { transition:none } }
+  </style>
+</head>
+<body><div id="root" role="img" aria-label="Tandem"></div><script type="module" src="/src/splash.tsx"></script></body>
+</html>

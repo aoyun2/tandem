@@ -1,0 +1,37 @@
+{
+  "name": "tandem",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A desktop client for shared Pokémon Nuzlocke runs",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && electron-vite build",
+    "test": "vitest run",
+    "test:smoke": "npm run build && node scripts/launch-smoke.mjs"
+  },
+  "dependencies": {
+    "@fontsource/source-sans-3": "^5.3.1",
+    "@fontsource/source-serif-4": "^5.3.1",
+    "koffi": "^3.3.8",
+    "lucide-react": "^1.74.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.3.3",
+    "electron-vite": "^6.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
